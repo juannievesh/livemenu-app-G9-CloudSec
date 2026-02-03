@@ -1,7 +1,9 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-
+from sqlalchemy import select
+from app.models.user import User
+from app.core.security import verify_password
 from app.models.user import User
 from app.core.security import hash_password  # asegúrate que exista
 
@@ -16,4 +18,11 @@ def register_user(db: Session, email: str, password: str):
     db.add(user)
     db.commit()
     db.refresh(user)
+    return user
+def authenticate_user(db, email: str, password: str):
+    user = db.execute(select(User).where(User.email == email)).scalar_one_or_none()
+    if not user:
+        return None
+    if not verify_password(password, user.password_hash):
+        return None
     return user
