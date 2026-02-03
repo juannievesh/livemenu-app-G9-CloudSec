@@ -5,7 +5,7 @@ from alembic import context
 import os
 import sys
 from dotenv import load_dotenv
-
+from app.models import user, restaurant 
 # Agregar el directorio raíz del proyecto al path
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
