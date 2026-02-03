@@ -11,7 +11,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 # Cargar variables de entorno
 load_dotenv()
-
+if "DATABASE_URL" in os.environ:
+    os.environ["DATABASE_URL"] = os.environ["DATABASE_URL"].replace("postgresql+asyncpg", "postgresql")
 # Importar Base y modelos
 from app.core.database import Base
 from app.core.config import settings

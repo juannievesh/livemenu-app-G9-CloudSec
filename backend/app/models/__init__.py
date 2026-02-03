@@ -4,3 +4,5 @@
 # from app.models.category import Category
 # from app.models.dish import Dish
 
+from .user import User
+from .restaurant import Restaurant
