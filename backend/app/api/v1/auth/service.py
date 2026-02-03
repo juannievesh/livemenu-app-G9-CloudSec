@@ -1,19 +1,19 @@
-from app.models.user import User
-from app.core.security import hash_password
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
-async def register_user(db: AsyncSession, email: str, password: str):
-    result = await db.execute(select(User).where(User.email == email))
-    if result.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="Email already registered")
+from app.models.user import User
+from app.core.security import hash_password  # asegúrate que exista
 
-    user = User(
-        email=email,
-        password_hash=hash_password(password)
-    )
+def register_user(db: Session, email: str, password: str):
+    result = db.execute(select(User).where(User.email == email))
+    existing = result.scalar_one_or_none()
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    print("DEBUG password repr:", repr(password))
+    print("DEBUG password len:", len(password))
+    user = User(email=email, password_hash=hash_password(password))
     db.add(user)
-    await db.commit()
-    await db.refresh(user)
+    db.commit()
+    db.refresh(user)
     return user
