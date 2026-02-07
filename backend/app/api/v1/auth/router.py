@@ -7,6 +7,8 @@ from .service import register_user
 from .service import authenticate_user
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from app.core.jwt import create_access_token
+
 router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/register")
 def register(data: RegisterRequest, db: Session = Depends(get_db)):
@@ -19,4 +21,10 @@ def login(data: LoginRequest, db=Depends(get_db)):
     user = authenticate_user(db, data.email, data.password)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    return {"id": str(user.id), "email": user.email}
+    token = create_access_token({"sub": str(user.id)})
+    return {"access_token": token, "token_type": "bearer"}
+from app.core.deps import get_current_user
+
+@router.get("/me")
+def me(current_user=Depends(get_current_user)):
+    return {"id": str(current_user.id), "email": current_user.email}
