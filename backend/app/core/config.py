@@ -1,6 +1,9 @@
 from pydantic_settings import BaseSettings
 from typing import List
+from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
+ENV_FILE = BASE_DIR / ".env"
 
 class Settings(BaseSettings):
     # Database
@@ -25,8 +28,9 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     
     class Config:
-        env_file = ".env"
+        env_file = ENV_FILE
         case_sensitive = True
+        extra="ignore" 
 
 
 settings = Settings()
