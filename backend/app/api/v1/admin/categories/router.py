@@ -1,19 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.session import get_db
-from app.core.dependencies import get_current_user
+from app.core.database import get_db
+from app.core.deps import get_current_user
 from app.services.category_service import CategoryService
 from app.schemas.category import (
     CategoryCreate,
     CategoryUpdate,
-    CategoryReorder
+    CategoryReorder,
+    CategoryInDB
 )
 
-router = APIRouter(prefix="/categories", tags=["Admin Categories"])
+router = APIRouter(prefix="/categories",tags=["Admin Categories"])
 service = CategoryService()
 
 
-@router.get("")
+@router.get("", response_model=list[CategoryInDB])
 async def list_categories(
     db: AsyncSession = Depends(get_db),
     user=Depends(get_current_user),
@@ -21,7 +22,7 @@ async def list_categories(
     return await service.list(db, user.restaurant_id)
 
 
-@router.post("")
+@router.post("", response_model=CategoryInDB)
 async def create_category(
     payload: CategoryCreate,
     db: AsyncSession = Depends(get_db),
@@ -30,7 +31,7 @@ async def create_category(
     return await service.create(db, user.restaurant_id, payload)
 
 
-@router.put("/{category_id}")
+@router.put("/{category_id}", response_model=CategoryInDB)
 async def update_category(
     category_id: str,
     payload: CategoryUpdate,
@@ -46,7 +47,8 @@ async def delete_category(
     db: AsyncSession = Depends(get_db),
     user=Depends(get_current_user),
 ):
-    return await service.delete(db, user.restaurant_id, category_id)
+    await service.delete(db, user.restaurant_id, category_id)
+    return {"message": "Category deleted"}
 
 
 @router.patch("/reorder")
@@ -55,4 +57,5 @@ async def reorder_categories(
     db: AsyncSession = Depends(get_db),
     user=Depends(get_current_user),
 ):
-    return await service.reorder(db, user.restaurant_id, payload.order)
+    await service.reorder(db, user.restaurant_id, payload.order)
+    return {"message": "Categories reordered"}

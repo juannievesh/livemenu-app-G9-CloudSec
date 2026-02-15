@@ -51,9 +51,11 @@ class DishService:
 
         update_data = data.dict(exclude_unset=True)
 
+        # Validar offer_price después de posible cambio de precio
         if "offer_price" in update_data:
-            if update_data["offer_price"] >= dish.price:
-                raise HTTPException(400, "Invalid offer price")
+            price_to_check = update_data.get("price", dish.price)
+            if update_data["offer_price"] >= price_to_check:
+                raise HTTPException(400, "Offer price must be lower than price")
 
         for key, value in update_data.items():
             setattr(dish, key, value)
@@ -72,6 +74,7 @@ class DishService:
 
         dish = await self.get(db, restaurant_id, dish_id)
 
-        dish.available = not dish.available        
-
+        dish.available = not dish.available
+        await db.commit()
+        await db.refresh(dish)
         return dish

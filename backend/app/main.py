@@ -5,6 +5,8 @@ from app.core.database import engine, Base
 from app.api.v1 import api_router
 from app.api.v1.auth.router import router as auth_router
 from app.api.v1.restaurants.router import router as restaurants_router
+from app.api.v1.admin.categories.router import router as categories_router
+from app.api.v1.admin.dishes.router import router as dishes_router
 # Crear tablas (en producción usar migraciones)
 # Base.metadata.create_all(bind=engine)
 
@@ -44,3 +46,5 @@ async def health_check():
 
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(restaurants_router, prefix="/api/v1")
+app.include_router(categories_router, prefix="/api/v1/admin")
+app.include_router(dishes_router, prefix="/api/v1/admin")

@@ -1,5 +1,5 @@
 from sqlalchemy import select, func
-from datetime import datetime
+from datetime import datetime, timezone
 from app.models.dish import Dish
 from app.models.category import Category
 
@@ -22,6 +22,9 @@ class DishRepository:
 
         if filters.get("available") is not None:
             query = query.where(Dish.available == filters["available"])
+
+        if filters.get("featured") is not None:
+            query = query.where(Dish.featured == filters["featured"])
 
         result = await db.execute(query.order_by(Dish.position))
         return result.scalars().all()
@@ -47,5 +50,5 @@ class DishRepository:
         return dish
 
     async def soft_delete(self, db, dish):
-        dish.deleted_at = datetime.utcnow()
+        dish.deleted_at = datetime.now(timezone.utc)
         await db.commit()
