@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import AsyncMock
 from uuid import uuid4
 from fastapi import HTTPException
 from app.services.dish_service import DishService
@@ -47,9 +48,17 @@ class FakeCategoryRepo:
         return self.category
 
 
-@pytest.mark.asyncio
-async def test_create_dish_success():
+@pytest.fixture
+def fake_db():
+    """Fixture que devuelve un objeto con métodos commit y refresh simulados."""
+    db = AsyncMock()
+    db.commit = AsyncMock()
+    db.refresh = AsyncMock()
+    return db
 
+
+@pytest.mark.asyncio
+async def test_create_dish_success(fake_db):
     restaurant_id = uuid4()
     category = FakeCategory(restaurant_id)
 
@@ -66,15 +75,14 @@ async def test_create_dish_success():
         featured = False
         tags = []
 
-    result = await service.create(None, restaurant_id, Payload())
+    result = await service.create(fake_db, restaurant_id, Payload())
 
     assert result["name"] == "Pizza"
     assert result["position"] == 3  # 2 + 1
 
 
 @pytest.mark.asyncio
-async def test_create_dish_invalid_offer_price():
-
+async def test_create_dish_invalid_offer_price(fake_db):
     restaurant_id = uuid4()
     category = FakeCategory(restaurant_id)
 
@@ -92,38 +100,36 @@ async def test_create_dish_invalid_offer_price():
         tags = []
 
     with pytest.raises(HTTPException):
-        await service.create(None, restaurant_id, Payload())
+        await service.create(fake_db, restaurant_id, Payload())
 
 
 @pytest.mark.asyncio
-async def test_toggle_availability():
-
+async def test_toggle_availability(fake_db):
     restaurant_id = uuid4()
     dish = FakeDish(restaurant_id)
 
     service = DishService()
     fake_repo = FakeRepo()
     fake_repo.dish = dish
-
     service.repo = fake_repo
 
-    result = await service.toggle_availability(None, restaurant_id, dish.id)
+    result = await service.toggle_availability(fake_db, restaurant_id, dish.id)
 
     assert result.available is False
+    fake_db.commit.assert_awaited_once()
+    fake_db.refresh.assert_awaited_once_with(dish)
 
 
 @pytest.mark.asyncio
-async def test_delete_soft_delete():
-
+async def test_delete_soft_delete(fake_db):
     restaurant_id = uuid4()
     dish = FakeDish(restaurant_id)
 
     service = DishService()
     fake_repo = FakeRepo()
     fake_repo.dish = dish
-
     service.repo = fake_repo
 
-    await service.delete(None, restaurant_id, dish.id)
+    await service.delete(fake_db, restaurant_id, dish.id)
 
     assert hasattr(dish, "deleted_at")
