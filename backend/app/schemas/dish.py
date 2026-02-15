@@ -7,8 +7,8 @@ from decimal import Decimal
 class DishBase(BaseModel):
     name: str = Field(..., max_length=100)
     description: Optional[str] = Field(None, max_length=300)
-    price: Decimal = Field(..., gt=0, decimal_places=2)
-    offer_price: Optional[Decimal] = Field(None, gt=0, decimal_places=2)
+    price: Decimal = Field(..., gt=0)
+    offer_price: Optional[Decimal] = Field(None, gt=0)
     available: bool = True
     featured: bool = False
     tags: List[str] = []
@@ -21,8 +21,8 @@ class DishCreate(DishBase):
 class DishUpdate(BaseModel):
     name: Optional[str] = Field(None, max_length=100)
     description: Optional[str] = Field(None, max_length=300)
-    price: Optional[Decimal] = Field(None, gt=0, decimal_places=2)
-    offer_price: Optional[Decimal] = Field(None, gt=0, decimal_places=2)
+    price: Optional[Decimal] = Field(None, gt=0)
+    offer_price: Optional[Decimal] = Field(None, gt=0)
     available: Optional[bool] = None
     featured: Optional[bool] = None
     tags: Optional[List[str]] = None
