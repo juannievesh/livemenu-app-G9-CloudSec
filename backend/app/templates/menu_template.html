@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú - {{ menu.restaurant_name }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 20px; }
+        .category { margin-top: 20px; }
+        .item { padding: 5px 0; border-bottom: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <h1>{{ menu.restaurant_name }}</h1>
+    
+    {% for category in menu.categories %}
+        <div class="category">
+            <h2>{{ category.name }}</h2>
+            <ul>
+                {% for item in category.items %}
+                    <li class="item">{{ item }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endfor %}
+</body>
+</html>
