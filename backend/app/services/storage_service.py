@@ -38,5 +38,27 @@ class StorageService:
         except GoogleCloudError as e:
             logger.error(f"Error subiendo {filename} a GCS: {e}")
             raise e
+    
+
+    def delete_image(self, filename: str) -> bool:
+        """
+        Elimina un objeto del bucket de GCP.
+        Retorna True si fue exitoso o False si el archivo no existía o hubo un error.
+        """
+        if not self.client:
+            logger.error("Intento de borrado sin cliente GCP activo.")
+            return False
+            
+        try:
+            blob = self.bucket.blob(filename)
+            # If_generation_match=None fuerza el borrado sin importar la versión
+            blob.delete()
+            logger.info(f"Archivo {filename} eliminado de GCP exitosamente.")
+            return True
+        except Exception as e:
+            # En una API REST, intentar borrar algo que ya no existe no siempre es un error crítico,
+            # pero debe ser registrado.
+            logger.warning(f"No se pudo eliminar {filename} en GCP: {e}")
+            return False
 
 storage_service = StorageService()
