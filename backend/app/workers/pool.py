@@ -6,6 +6,7 @@ import logging
 import os
 from io import BytesIO
 from PIL import Image
+from app.services.storage_service import storage_service
 
 # Configuración de log y lectura de variable de entorno
 logger = logging.getLogger(__name__)
@@ -62,7 +63,7 @@ class ImageWorkerPool:
             try:
                 task_data = await asyncio.wait_for(self.queue.get(), timeout=1.0)
                 
-                # Ejecución en proceso paralelo
+                # CPU-bound: Redimensionar imagen (Pillow)
                 result = await loop.run_in_executor(
                     self.executor, 
                     process_image_cpu_bound, 
@@ -71,10 +72,28 @@ class ImageWorkerPool:
                 )
 
                 if result['status'] == 'success':
-                    # TODO: Aquí se inyecta la subida al Object Storage (S3/GCS)
-                    logger.info(f"Imagen {result['filename']} procesada. Variantes generadas: {list(result['variants'].keys())}")
+                    # I/O-bound: Subir variantes a Google Cloud Storage
+                    base_name = result['filename'].split('.')[0]
+                    urls_generadas = {}
+                    
+                    for variant_name, img_bytes in result['variants'].items():
+                        cloud_filename = f"{base_name}_{variant_name}.webp"
+                        
+                        try:
+                            # Ejecutamos la subida a GCP sin bloquear FastAPI
+                            url = await loop.run_in_executor(
+                                None, 
+                                storage_service.upload_image_variant,
+                                img_bytes,
+                                cloud_filename
+                            )
+                            urls_generadas[variant_name] = url
+                        except Exception as e:
+                            logger.error(f"GCP Upload fallido para {cloud_filename}: {e}")
+                            
+                    logger.info(f"Variantes subidas a GCP. URLs: {urls_generadas}")
                 else:
-                    logger.error(f"Fallo críico procesando {result['filename']}: {result['message']}")
+                    logger.error(f"Error procesando {result['filename']}: {result['message']}")
 
                 self.queue.task_done()
             except asyncio.TimeoutError:

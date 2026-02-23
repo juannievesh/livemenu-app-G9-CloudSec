@@ -67,3 +67,7 @@ htmlcov/
 # Alembic
 alembic/versions/*.pyc
 
+# GCP Credentials & Secrets
+gcp-credentials.json
+/secrets/
+*.pem
