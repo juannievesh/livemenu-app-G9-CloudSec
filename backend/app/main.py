@@ -57,6 +57,7 @@ app.include_router(dishes_router, prefix="/api/v1/admin")
 app.include_router(upload_router, prefix="/api/v1/admin/upload", tags=["upload"])
 app.include_router(qr_router, prefix="/api/v1/admin/qr", tags=["qr"])
 app.include_router(menu_router, tags=["menu"])
+app.include_router(menu_router, prefix="/api/v1/menu", tags=["Menu Público"])
 
 @app.get("/")
 async def root():

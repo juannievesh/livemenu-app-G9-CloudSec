@@ -18,7 +18,7 @@ class Dish(Base):
     )
 
     name: Mapped[str] = mapped_column(String(100), nullable=False)
-    description: Mapped[str | None] = mapped_column(Text(300), nullable=True)
+    description: Mapped[str | None] = mapped_column(String(300), nullable=True)
 
     price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     offer_price: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)

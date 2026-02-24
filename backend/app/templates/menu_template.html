@@ -25,7 +25,7 @@
         <div class="category">
             <h2>{{ category.name }}</h2>
             <ul class="item-list">
-                {% for item in category.items %}
+                {% for item in category['items'] %}
                     <li class="item">
                         <div class="item-info">
                             <h3 class="item-name">{{ item.name }}</h3>
