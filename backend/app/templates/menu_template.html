@@ -5,9 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menú - {{ menu.restaurant_name }}</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 20px; }
-        .category { margin-top: 20px; }
-        .item { padding: 5px 0; border-bottom: 1px solid #eee; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: auto; padding: 20px; background-color: #f9f9f9; color: #333; }
+        h1 { text-align: center; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+        .category { margin-top: 30px; }
+        .category h2 { background-color: #eee; padding: 10px; border-radius: 5px; }
+        .item-list { list-style: none; padding: 0; }
+        .item { display: flex; align-items: flex-start; background: white; margin-bottom: 15px; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .item-info { flex: 1; }
+        .item-name { margin: 0 0 5px 0; font-size: 1.2em; color: #d35400; }
+        .item-desc { margin: 0 0 10px 0; color: #666; font-size: 0.9em; }
+        .item-price { font-weight: bold; font-size: 1.1em; color: #27ae60; }
+        .item-image { margin-left: 15px; width: 100px; height: 100px; border-radius: 8px; object-fit: cover; }
     </style>
 </head>
 <body>
@@ -16,12 +24,26 @@
     {% for category in menu.categories %}
         <div class="category">
             <h2>{{ category.name }}</h2>
-            <ul>
+            <ul class="item-list">
                 {% for item in category.items %}
-                    <li class="item">{{ item }}</li>
+                    <li class="item">
+                        <div class="item-info">
+                            <h3 class="item-name">{{ item.name }}</h3>
+                            {% if item.description %}
+                                <p class="item-desc">{{ item.description }}</p>
+                            {% endif %}
+                            <div class="item-price">${{ "%.2f"|format(item.price) }}</div>
+                        </div>
+                        
+                        {% if item.image_urls and item.image_urls.get('thumbnail') %}
+                            <img src="{{ item.image_urls.get('thumbnail') }}" alt="{{ item.name }}" class="item-image" loading="lazy">
+                        {% endif %}
+                    </li>
                 {% endfor %}
             </ul>
         </div>
+    {% else %}
+        <p>No hay platos disponibles en este momento.</p>
     {% endfor %}
 </body>
 </html>

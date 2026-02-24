@@ -1,5 +1,4 @@
 # backend/app/workers/pool.py
-
 import asyncio
 from concurrent.futures import ProcessPoolExecutor
 import logging
@@ -7,17 +6,18 @@ import os
 from io import BytesIO
 from PIL import Image
 from app.services.storage_service import storage_service
+from uuid import UUID
+from app.repositories.dish_repository import DishRepository
 
-# Configuración de log y lectura de variable de entorno
+# Asegúrate de que AsyncSessionLocal esté correctamente importado desde tu core de BD
+from app.core.database import AsyncSessionLocal
+
 logger = logging.getLogger(__name__)
 WORKER_POOL_SIZE = int(os.getenv("WORKER_POOL_SIZE", 4))
 
-# LÓGICA CPU-BOUND
 def process_image_cpu_bound(image_bytes: bytes, filename: str) -> dict:
-    """Transformación de imágenes. Bloquea la CPU, por lo que corre en un proceso separado."""
     try:
         with Image.open(BytesIO(image_bytes)) as img:
-            # Normalización estricta de canales alpha
             if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
                 background = Image.new('RGB', img.size, (255, 255, 255))
                 background.paste(img, mask=img.split()[3])
@@ -33,7 +33,6 @@ def process_image_cpu_bound(image_bytes: bytes, filename: str) -> dict:
             for size_name, (dimensions, quality) in configs.items():
                 img_copy = img.copy()
                 img_copy.thumbnail(dimensions, Image.Resampling.LANCZOS)
-                
                 output_io = BytesIO()
                 img_copy.save(output_io, format='WEBP', quality=quality)
                 variants[size_name] = output_io.getvalue()
@@ -42,7 +41,7 @@ def process_image_cpu_bound(image_bytes: bytes, filename: str) -> dict:
     except Exception as e:
         return {"status": "error", "message": str(e), "filename": filename}
 
-# ORQUESTADOR I/O-BOUND
+
 class ImageWorkerPool:
     def __init__(self, max_workers: int = WORKER_POOL_SIZE):
         self.queue = asyncio.Queue()
@@ -51,7 +50,6 @@ class ImageWorkerPool:
         self._shutdown_event = asyncio.Event()
 
     async def start(self):
-        """Inicializa los workers que consumirán la cola."""
         for i in range(self.executor._max_workers):
             task = asyncio.create_task(self._worker_loop(i))
             self.workers.append(task)
@@ -63,7 +61,9 @@ class ImageWorkerPool:
             try:
                 task_data = await asyncio.wait_for(self.queue.get(), timeout=1.0)
                 
-                # CPU-bound: Redimensionar imagen (Pillow)
+                # EXTRACCIÓN CRÍTICA DEL ID
+                dish_id = task_data['dish_id']
+                
                 result = await loop.run_in_executor(
                     self.executor, 
                     process_image_cpu_bound, 
@@ -72,15 +72,12 @@ class ImageWorkerPool:
                 )
 
                 if result['status'] == 'success':
-                    # I/O-bound: Subir variantes a Google Cloud Storage
                     base_name = result['filename'].split('.')[0]
                     urls_generadas = {}
                     
                     for variant_name, img_bytes in result['variants'].items():
                         cloud_filename = f"{base_name}_{variant_name}.webp"
-                        
                         try:
-                            # Ejecutamos la subida a GCP sin bloquear FastAPI
                             url = await loop.run_in_executor(
                                 None, 
                                 storage_service.upload_image_variant,
@@ -91,7 +88,16 @@ class ImageWorkerPool:
                         except Exception as e:
                             logger.error(f"GCP Upload fallido para {cloud_filename}: {e}")
                             
-                    logger.info(f"Variantes subidas a GCP. URLs: {urls_generadas}")
+                    logger.info(f"Variantes subidas a GCP: {urls_generadas}")
+                    
+                    try:
+                        async with AsyncSessionLocal() as db:
+                            repo = DishRepository()
+                            await repo.update_image_urls(db, dish_id, urls_generadas)
+                        logger.info(f"Base de datos actualizada para dish_id {dish_id}")
+                    except Exception as db_error:
+                        logger.error(f"Error de base de datos actualizando URLs: {db_error}")
+
                 else:
                     logger.error(f"Error procesando {result['filename']}: {result['message']}")
 
@@ -101,12 +107,10 @@ class ImageWorkerPool:
             except asyncio.CancelledError:
                 break
 
-    async def add_task(self, image_bytes: bytes, filename: str):
-        """Punto de entrada para que el endpoint agregue trabajos."""
-        await self.queue.put({'bytes': image_bytes, 'filename': filename})
+    async def add_task(self, image_bytes: bytes, filename: str, dish_id: UUID):
+        await self.queue.put({'bytes': image_bytes, 'filename': filename, 'dish_id': dish_id})
 
     async def shutdown(self):
-        """Apagado estricto para no perder imágenes en memoria."""
         self._shutdown_event.set()
         await self.queue.join()
         for w in self.workers:
@@ -114,5 +118,4 @@ class ImageWorkerPool:
         self.executor.shutdown(wait=True)
         logger.info("Worker pool detenido.")
 
-# Instancia global para ser importada por los endpoints
 image_pool = ImageWorkerPool()

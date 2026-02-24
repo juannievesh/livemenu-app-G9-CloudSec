@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from sqlalchemy import String, Text, Numeric, Boolean, Integer, ForeignKey, DateTime
-from sqlalchemy.dialects.postgresql import UUID, ARRAY
+from sqlalchemy.dialects.postgresql import UUID, ARRAY, JSONB 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
 
@@ -23,7 +23,7 @@ class Dish(Base):
     price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     offer_price: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
 
-    image_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    image_urls: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
     available: Mapped[bool] = mapped_column(Boolean, default=True)
     featured: Mapped[bool] = mapped_column(Boolean, default=False)
