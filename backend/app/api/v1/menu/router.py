@@ -1,4 +1,5 @@
 # backend/app/api/v1/menu/router.py
+
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -8,7 +9,7 @@ from sqlalchemy.orm import selectinload
 from datetime import datetime, timedelta
 from typing import Dict, Any
 
-# Ajusta estas importaciones a la ruta real de tu proyecto
+
 from app.core.database import get_db 
 from app.models.restaurant import Restaurant
 from app.models.category import Category
@@ -25,7 +26,6 @@ async def get_menu_from_db(slug: str, db: AsyncSession):
     
     stmt = (
         select(Restaurant)
-        # Trae el restaurante, sus categorías, y los platos de esas categorías de un solo golpe
         .options(selectinload(Restaurant.categories).selectinload(Category.dishes))
         .where(Restaurant.slug == slug)
     )
@@ -35,20 +35,15 @@ async def get_menu_from_db(slug: str, db: AsyncSession):
     if not restaurant:
         return None
 
-    # Serializamos a un diccionario nativo de Python para que pueda ser almacenado 
-    # en caché de forma segura sin generar errores de "Detached Instance" en SQLAlchemy.
     menu_data = {
         "restaurant_name": restaurant.name,
         "categories": []
     }
 
-    # Ordenamos y filtramos en memoria
     for category in restaurant.categories:
         cat_data = {"name": category.name, "items": []}
         
-        # Filtramos platos eliminados o no disponibles (Soft Delete)
         active_dishes = [d for d in category.dishes if d.available and d.deleted_at is None]
-        # Ordenamos por la posición definida por el restaurante
         active_dishes.sort(key=lambda x: x.position)
         
         for dish in active_dishes:
@@ -56,12 +51,10 @@ async def get_menu_from_db(slug: str, db: AsyncSession):
                 "name": dish.name,
                 "description": dish.description,
                 "price": float(dish.price),
-                # El campo JSONB que definimos antes entra en acción aquí
                 "image_urls": dish.image_urls or {},
                 "offer_price": float(dish.offer_price) if dish.offer_price else None
             })
             
-        # Solo agregamos categorías que tengan platos activos
         if cat_data["items"]:
             menu_data["categories"].append(cat_data)
 

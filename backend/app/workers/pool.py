@@ -1,4 +1,5 @@
 # backend/app/workers/pool.py
+
 import asyncio
 from concurrent.futures import ProcessPoolExecutor
 import logging
@@ -8,8 +9,6 @@ from PIL import Image
 from app.services.storage_service import storage_service
 from uuid import UUID
 from app.repositories.dish_repository import DishRepository
-
-# Asegúrate de que AsyncSessionLocal esté correctamente importado desde tu core de BD
 from app.core.database import AsyncSessionLocal
 
 logger = logging.getLogger(__name__)
@@ -61,7 +60,6 @@ class ImageWorkerPool:
             try:
                 task_data = await asyncio.wait_for(self.queue.get(), timeout=1.0)
                 
-                # EXTRACCIÓN CRÍTICA DEL ID
                 dish_id = task_data['dish_id']
                 
                 result = await loop.run_in_executor(

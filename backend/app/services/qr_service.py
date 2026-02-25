@@ -11,7 +11,6 @@ class QRService:
         Genera un código QR en formato PNG o SVG.
         Aplica nivel de corrección H (30%) obligatorio para entornos comerciales.
         """
-        # Mapeo estricto de tamaños físicos a box_size
         sizes = {'S': 5, 'M': 10, 'L': 15, 'XL': 20}
         box_size = sizes.get(size.upper(), 10)
 

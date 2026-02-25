@@ -1,4 +1,5 @@
 # backend/tests/test_worker.py
+
 import pytest
 import asyncio
 from io import BytesIO
@@ -9,7 +10,6 @@ import uuid
 from app.workers.pool import ImageWorkerPool
 from app.services.qr_service import QRService
 
-# --- TESTS DEL SERVICIO QR ---
 def test_qr_generation_png():
     url = "https://livemenu.app/m/test"
     result_io = QRService.generate_qr(url, format_type='png', size='M')
@@ -24,7 +24,6 @@ def test_qr_generation_svg():
     assert b"<?xml" in result_bytes
     assert b"<svg" in result_bytes
 
-# --- TESTS DEL WORKER POOL ---
 def create_dummy_image_bytes() -> bytes:
     img = Image.new('RGB', (100, 100), color='blue')
     img_byte_arr = BytesIO()
@@ -35,7 +34,6 @@ def create_dummy_image_bytes() -> bytes:
 async def test_worker_pool_processing_and_upload():
     pool = ImageWorkerPool(max_workers=2)
     
-    # Doble Mock: Aislamos GCP y la Base de Datos
     with patch('app.workers.pool.storage_service.upload_image_variant') as mock_upload, \
          patch('app.workers.pool.AsyncSessionLocal') as mock_db, \
          patch('app.workers.pool.DishRepository') as mock_repo:
@@ -45,7 +43,6 @@ async def test_worker_pool_processing_and_upload():
         asyncio.create_task(pool.start())
         dummy_bytes = create_dummy_image_bytes()
         
-        # Generamos un UUID sintético para cumplir con el contrato de la interfaz
         test_dish_id = uuid.uuid4()
         await pool.add_task(dummy_bytes, "plato_test.jpg", test_dish_id)
         

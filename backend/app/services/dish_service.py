@@ -51,7 +51,6 @@ class DishService:
 
         update_data = data.dict(exclude_unset=True)
 
-        # Validar offer_price después de posible cambio de precio
         if "offer_price" in update_data:
             price_to_check = update_data.get("price", dish.price)
             if update_data["offer_price"] >= price_to_check:

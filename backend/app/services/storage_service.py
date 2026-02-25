@@ -1,4 +1,5 @@
 # backend/app/services/storage_service.py
+
 from google.cloud import storage
 from google.cloud.exceptions import GoogleCloudError
 import logging
@@ -8,8 +9,6 @@ logger = logging.getLogger(__name__)
 
 class StorageService:
     def __init__(self):
-        # La autenticación ocurre automáticamente debajo de la mesa 
-        # usando la variable GOOGLE_APPLICATION_CREDENTIALS
         try:
             self.client = storage.Client()
             self.bucket_name = os.getenv("GCP_BUCKET_NAME", "livemenu-images-prod")
@@ -26,13 +25,11 @@ class StorageService:
         try:
             blob = self.bucket.blob(filename)
             
-            # Subida directa del binario desde la memoria RAM del Worker
             blob.upload_from_string(
                 data=file_bytes,
                 content_type=content_type
             )
             
-            # Retorna el enlace directo hacia la infraestructura de Google
             return blob.public_url
             
         except GoogleCloudError as e:
@@ -51,13 +48,10 @@ class StorageService:
             
         try:
             blob = self.bucket.blob(filename)
-            # If_generation_match=None fuerza el borrado sin importar la versión
             blob.delete()
             logger.info(f"Archivo {filename} eliminado de GCP exitosamente.")
             return True
         except Exception as e:
-            # En una API REST, intentar borrar algo que ya no existe no siempre es un error crítico,
-            # pero debe ser registrado.
             logger.warning(f"No se pudo eliminar {filename} en GCP: {e}")
             return False
 

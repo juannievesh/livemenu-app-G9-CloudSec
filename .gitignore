@@ -43,6 +43,10 @@ ENV/
 
 # Uploads
 uploads/
+temp/
+qr_*.png
+qr_*.svg
+qr_*.pdf
 *.jpg
 *.jpeg
 *.png
@@ -69,5 +73,8 @@ alembic/versions/*.pyc
 
 # GCP Credentials & Secrets
 gcp-credentials.json
+*service-account*.json
+*gcp*.json
+*key*.json
 /secrets/
 *.pem
