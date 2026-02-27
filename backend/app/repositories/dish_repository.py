@@ -1,4 +1,4 @@
-from sqlalchemy import select, func
+from sqlalchemy import select, func, update
 from datetime import datetime, timezone
 from app.models.dish import Dish
 from app.models.category import Category
@@ -48,7 +48,35 @@ class DishRepository:
         await db.commit()
         await db.refresh(dish)
         return dish
+    
+    async def update_image_urls(self, db, dish_id, urls: dict):
+        """Actualiza el campo JSONB con las nuevas URLs generadas en la nube."""
+        await db.execute(
+            update(Dish).where(Dish.id == dish_id).values(image_urls=urls)
+        )
+        await db.commit()
 
     async def soft_delete(self, db, dish):
         dish.deleted_at = datetime.now(timezone.utc)
         await db.commit()
+
+    async def verify_dish_ownership(self, db, dish_id, owner_id) -> bool:
+        """
+        Verifica que el plato pertenezca a la jerarquía
+        de un restaurante cuyo owner_id coincida con el usuario autenticado.
+        """
+        from sqlalchemy import select
+        from app.models.category import Category
+        from app.models.restaurant import Restaurant
+
+        stmt = (
+            select(Dish.id)
+            .join(Category, Dish.category_id == Category.id)
+            .join(Restaurant, Category.restaurant_id == Restaurant.id)
+            .where(
+                Dish.id == dish_id,
+                Restaurant.owner_id == owner_id
+            )
+        )
+        result = await db.execute(stmt)
+        return result.scalar_one_or_none() is not None

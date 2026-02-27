@@ -5,7 +5,7 @@ from sqlalchemy import select
 from app.models.user import User
 from app.core.security import verify_password
 from app.models.user import User
-from app.core.security import hash_password  # asegúrate que exista
+from app.core.security import hash_password
 
 def register_user(db: Session, email: str, password: str):
     result = db.execute(select(User).where(User.email == email))

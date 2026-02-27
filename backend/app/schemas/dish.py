@@ -32,7 +32,7 @@ class DishUpdate(BaseModel):
 class DishInDB(DishBase):
     id: UUID
     category_id: UUID
-    image_url: Optional[str]
+    image_urls: Optional[dict]
     position: int
 
     class Config:
