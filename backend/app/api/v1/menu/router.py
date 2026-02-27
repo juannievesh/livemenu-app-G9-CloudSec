@@ -37,22 +37,29 @@ async def get_menu_from_db(slug: str, db: AsyncSession):
 
     menu_data = {
         "restaurant_name": restaurant.name,
+        "restaurant_logo": restaurant.logo_url,
+        "restaurant_phone": restaurant.phone,
+        "restaurant_horarios": restaurant.horarios,
         "categories": []
     }
 
     for category in restaurant.categories:
+        if not category.active:
+            continue
         cat_data = {"name": category.name, "items": []}
         
-        active_dishes = [d for d in category.dishes if d.available and d.deleted_at is None]
-        active_dishes.sort(key=lambda x: x.position)
+        dishes = [d for d in category.dishes if d.deleted_at is None]
+        dishes.sort(key=lambda x: x.position)
         
-        for dish in active_dishes:
+        for dish in dishes:
             cat_data["items"].append({
                 "name": dish.name,
                 "description": dish.description,
                 "price": float(dish.price),
                 "image_urls": dish.image_urls or {},
-                "offer_price": float(dish.offer_price) if dish.offer_price else None
+                "offer_price": float(dish.offer_price) if dish.offer_price else None,
+                "available": dish.available,
+                "tags": dish.tags or []
             })
             
         if cat_data["items"]:

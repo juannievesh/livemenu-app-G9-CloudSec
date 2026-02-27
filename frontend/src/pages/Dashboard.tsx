@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchApi } from '../services/api';
+import { OnboardingEmpty } from '../components/OnboardingEmpty';
 import { LayoutDashboard, ExternalLink, Plus, BookOpen, UtensilsCrossed, QrCode } from 'lucide-react';
 
 interface Restaurant {
@@ -18,8 +19,8 @@ export default function Dashboard() {
   useEffect(() => {
     (async () => {
       try {
-        const data = await fetchApi<Restaurant[]>('/restaurants/');
-        setRestaurants(Array.isArray(data) ? data : []);
+        const data = await fetchApi<Restaurant>('/admin/restaurant');
+        setRestaurants(data ? [data] : []);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error al cargar');
       } finally {
@@ -41,21 +42,7 @@ export default function Dashboard() {
   }
 
   if (!restaurant) {
-    return (
-      <div className="flex flex-col min-h-screen p-6 pb-24">
-        <h1 className="text-xl font-bold mb-4">Bienvenido a LiveMenu</h1>
-        <p className="text-slate-600 dark:text-slate-400 mb-6">
-          Crea tu restaurante para empezar a gestionar tu menú digital.
-        </p>
-        <Link
-          to="/settings"
-          className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-3 text-slate-900 font-medium hover:bg-amber-600"
-        >
-          <Plus className="h-5 w-5" />
-          Crear mi restaurante
-        </Link>
-      </div>
-    );
+    return <OnboardingEmpty step="restaurant" />;
   }
 
   return (

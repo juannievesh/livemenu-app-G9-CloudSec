@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchApi } from '../services/api';
+import { OnboardingEmpty } from '../components/OnboardingEmpty';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -23,13 +24,19 @@ interface Dish {
   available: boolean;
   featured: boolean;
   category_id: string;
+  tags?: string[];
   image_urls?: Record<string, string>;
+}
+
+interface Restaurant {
+  id: string;
+  name: string;
 }
 
 export default function EditDish() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const isNew = id === 'new';
+  const isNew = !id || id === 'new';
   const [categories, setCategories] = useState<Category[]>([]);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -37,8 +44,10 @@ export default function EditDish() {
   const [offerPrice, setOfferPrice] = useState('');
   const [available, setAvailable] = useState(true);
   const [featured, setFeatured] = useState(false);
+  const [tags, setTags] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [loading, setLoading] = useState(!isNew);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
@@ -46,8 +55,19 @@ export default function EditDish() {
 
   useEffect(() => {
     (async () => {
-      const cats = await fetchApi<Category[]>('/admin/categories');
-      setCategories(Array.isArray(cats) ? cats : []);
+      let cats: Category[] = [];
+      let rest: Restaurant[] = [];
+      try {
+        [cats, rest] = await Promise.all([
+          fetchApi<Category[]>('/admin/categories'),
+          fetchApi<Restaurant>('/admin/restaurant'),
+        ]);
+        setCategories(Array.isArray(cats) ? cats : []);
+        setRestaurants(rest ? [rest] : []);
+      } catch {
+        setCategories([]);
+        setRestaurants([]);
+      }
       if (!isNew && id) {
         try {
           const d = await fetchApi<Dish>(`/admin/dishes/${id}`);
@@ -58,17 +78,16 @@ export default function EditDish() {
           setAvailable(d.available);
           setFeatured(d.featured);
           setCategoryId(d.category_id);
+          setTags(Array.isArray(d.tags) ? d.tags.join(', ') : '');
           const urls = d.image_urls;
           setImagePreview(urls?.medium || urls?.large || urls?.thumbnail || null);
         } catch {
           setError('Plato no encontrado');
-        } finally {
-          setLoading(false);
         }
-      } else {
-        setLoading(false);
-        if (cats.length) setCategoryId(cats[0].id);
+      } else if (cats.length) {
+        setCategoryId(cats[0].id);
       }
+      setLoading(false);
     })();
   }, [id, isNew]);
 
@@ -85,6 +104,7 @@ export default function EditDish() {
         available,
         featured,
         category_id: categoryId,
+        tags: tags ? tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
       };
       if (isNew) {
         const created = await fetchApi<Dish>('/admin/dishes', {
@@ -93,6 +113,10 @@ export default function EditDish() {
         });
         navigate(`/dishes/${created.id}`);
       } else {
+        if (!id) {
+          setError('Error inesperado. Vuelve a la lista de platos.');
+          return;
+        }
         await fetchApi(`/admin/dishes/${id}`, {
           method: 'PUT',
           body: JSON.stringify(payload),
@@ -140,6 +164,14 @@ export default function EditDish() {
         <p className="text-slate-500">Cargando...</p>
       </div>
     );
+  }
+
+  if (!restaurants.length) {
+    return <OnboardingEmpty step="restaurant" />;
+  }
+
+  if (isNew && !categories.length) {
+    return <OnboardingEmpty step="categories" />;
   }
 
   return (
@@ -249,6 +281,16 @@ export default function EditDish() {
         <div className="flex items-center justify-between">
           <Label>Destacado</Label>
           <Switch checked={featured} onCheckedChange={setFeatured} />
+        </div>
+        <div>
+          <Label htmlFor="tags">Etiquetas</Label>
+          <Input
+            id="tags"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            placeholder="vegetariano, picante, sin gluten"
+            className="mt-1"
+          />
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <div className="flex gap-2">

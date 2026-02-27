@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchApi } from '../services/api';
+import { OnboardingEmpty } from '../components/OnboardingEmpty';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Switch } from '../components/ui/switch';
@@ -23,7 +24,13 @@ interface Dish {
   image_urls?: Record<string, string>;
 }
 
+interface Restaurant {
+  id: string;
+  name: string;
+}
+
 export default function Dishes() {
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -33,12 +40,14 @@ export default function Dishes() {
 
   const load = async () => {
     try {
-      const [dishesRes, catsRes] = await Promise.all([
+      const [dishesRes, catsRes, restRes] = await Promise.all([
         fetchApi<Dish[]>('/admin/dishes'),
         fetchApi<Category[]>('/admin/categories'),
+        fetchApi<Restaurant>('/admin/restaurant'),
       ]);
       setDishes(Array.isArray(dishesRes) ? dishesRes : []);
       setCategories(Array.isArray(catsRes) ? catsRes : []);
+      setRestaurants(restRes ? [restRes] : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error');
     } finally {
@@ -89,6 +98,14 @@ export default function Dishes() {
         <p className="text-slate-500">Cargando...</p>
       </div>
     );
+  }
+
+  if (!restaurants.length) {
+    return <OnboardingEmpty step="restaurant" />;
+  }
+
+  if (!categories.length) {
+    return <OnboardingEmpty step="categories" />;
   }
 
   return (

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchApi } from '../services/api';
+import { OnboardingEmpty } from '../components/OnboardingEmpty';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -12,7 +13,13 @@ interface Category {
   position: number;
 }
 
+interface Restaurant {
+  id: string;
+  name: string;
+}
+
 export default function Categories() {
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<{ open: boolean; category?: Category }>({ open: false });
@@ -23,8 +30,12 @@ export default function Categories() {
 
   const load = async () => {
     try {
-      const data = await fetchApi<Category[]>('/admin/categories');
-      setCategories(Array.isArray(data) ? data : []);
+      const [catsData, restData] = await Promise.all([
+        fetchApi<Category[]>('/admin/categories'),
+        fetchApi<Restaurant>('/admin/restaurant'),
+      ]);
+      setCategories(Array.isArray(catsData) ? catsData : []);
+      setRestaurants(restData ? [restData] : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error');
     } finally {
@@ -107,6 +118,10 @@ export default function Categories() {
         <p className="text-slate-500">Cargando...</p>
       </div>
     );
+  }
+
+  if (!restaurants.length) {
+    return <OnboardingEmpty step="restaurant" />;
   }
 
   return (

@@ -1,13 +1,27 @@
 import { useState, useEffect } from 'react';
-import { fetchBlob } from '../services/api';
+import { fetchApi, fetchBlob } from '../services/api';
+import { OnboardingEmpty } from '../components/OnboardingEmpty';
+
+interface Restaurant {
+  id: string;
+  name: string;
+}
 
 export default function QRCodePage() {
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [format, setFormat] = useState<'png' | 'svg'>('png');
   const [size, setSize] = useState<'S' | 'M' | 'L' | 'XL'>('M');
   const [loading, setLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
+    fetchApi<Restaurant>('/admin/restaurant')
+      .then((data) => setRestaurants(data ? [data] : []))
+      .catch(() => setRestaurants([]));
+  }, []);
+
+  useEffect(() => {
+    if (!restaurants.length) return;
     let revoked = false;
     (async () => {
       try {
@@ -20,7 +34,7 @@ export default function QRCodePage() {
       }
     })();
     return () => { revoked = true; setPreviewUrl((u) => { if (u) URL.revokeObjectURL(u); return null; }); };
-  }, [format, size]);
+  }, [format, size, restaurants.length]);
 
   const handleDownload = async () => {
     setLoading(true);
@@ -44,6 +58,10 @@ export default function QRCodePage() {
       setLoading(false);
     }
   };
+
+  if (!restaurants.length) {
+    return <OnboardingEmpty step="restaurant" />;
+  }
 
   return (
     <div className="flex flex-col min-h-screen p-6 pb-24">

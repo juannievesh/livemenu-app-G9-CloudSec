@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     
     # CORS
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5173"]
+
+    # Rate limiting (RNF04)
+    RATE_LIMIT_REQUESTS_PER_MINUTE: int = 100
     
     # Storage
     STORAGE_TYPE: str = "local"

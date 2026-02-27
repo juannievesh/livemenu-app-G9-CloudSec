@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menú - {{ menu.restaurant_name }}</title>
     <style>
+        * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: auto; padding: 20px; background-color: #f9f9f9; color: #333; }
-        h1 { text-align: center; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+        .header { display: flex; align-items: center; gap: 16px; justify-content: center; flex-wrap: wrap; padding-bottom: 16px; border-bottom: 2px solid #ddd; margin-bottom: 24px; }
+        .header-logo { width: 64px; height: 64px; border-radius: 100%; object-fit: cover; }
+        .header-title { margin: 0; font-size: 1.5em; }
         .category { margin-top: 30px; }
         .category h2 { background-color: #eee; padding: 10px; border-radius: 5px; }
         .item-list { list-style: none; padding: 0; }
@@ -15,12 +18,33 @@
         .item-name { margin: 0 0 5px 0; font-size: 1.2em; color: #d35400; }
         .item-desc { margin: 0 0 10px 0; color: #666; font-size: 0.9em; }
         .item-price { font-weight: bold; font-size: 1.1em; color: #27ae60; }
+        .item-price-old { text-decoration: line-through; color: #999; font-size: 0.9em; margin-right: 8px; }
+        .item-badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75em; font-weight: 500; }
+        .badge-available { background: #d4edda; color: #155724; }
+        .badge-unavailable { background: #f8d7da; color: #721c24; }
+        .badge-tag { background: #e2e3e5; color: #383d41; }
         .item-image { margin-left: 15px; width: 100px; height: 100px; border-radius: 8px; object-fit: cover; }
     </style>
 </head>
 <body>
-    <h1>{{ menu.restaurant_name }}</h1>
-    
+    <header class="header">
+        {% if menu.restaurant_logo %}
+        <img src="{{ menu.restaurant_logo }}" alt="{{ menu.restaurant_name }}" class="header-logo" loading="eager">
+        {% endif %}
+        <div>
+            <h1 class="header-title">{{ menu.restaurant_name }}</h1>
+            {% if menu.restaurant_phone %}
+            <p style="margin: 4px 0 0 0; font-size: 0.9em; color: #666;"><a href="tel:{{ menu.restaurant_phone }}">{{ menu.restaurant_phone }}</a></p>
+            {% endif %}
+            {% if menu.restaurant_horarios %}
+            <p style="margin: 4px 0 0 0; font-size: 0.85em; color: #888;">
+                {% for dia, horas in menu.restaurant_horarios.items() %}{{ dia }}: {{ horas }}{% if not loop.last %} · {% endif %}{% endfor %}
+            </p>
+            {% endif %}
+        </div>
+    </header>
+
     {% for category in menu.categories %}
         <div class="category">
             <h2>{{ category.name }}</h2>
@@ -32,9 +56,26 @@
                             {% if item.description %}
                                 <p class="item-desc">{{ item.description }}</p>
                             {% endif %}
-                            <div class="item-price">${{ "%.2f"|format(item.price) }}</div>
+                            <div class="item-badges">
+                                <span class="badge {% if item.available %}badge-available{% else %}badge-unavailable{% endif %}">
+                                    {% if item.available %}Disponible{% else %}Agotado{% endif %}
+                                </span>
+                                {% for tag in item.tags %}
+                                    {% if tag %}
+                                    <span class="badge badge-tag">{{ tag }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <div class="item-price">
+                                {% if item.offer_price %}
+                                    <span class="item-price-old">${{ "%.2f"|format(item.price) }}</span>
+                                    <span>${{ "%.2f"|format(item.offer_price) }}</span>
+                                {% else %}
+                                    ${{ "%.2f"|format(item.price) }}
+                                {% endif %}
+                            </div>
                         </div>
-                        
+
                         {% if item.image_urls and item.image_urls.get('thumbnail') %}
                             <img src="{{ item.image_urls.get('thumbnail') }}" alt="{{ item.name }}" class="item-image" loading="lazy">
                         {% endif %}

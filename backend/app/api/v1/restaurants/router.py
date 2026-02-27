@@ -9,7 +9,7 @@ from app.core.deps import get_current_user, get_current_user_only
 from app.models.user import User
 from app.models.restaurant import Restaurant
 
-router = APIRouter(prefix="/restaurants", tags=["restaurants"])
+router = APIRouter(prefix="/admin/restaurant", tags=["restaurants"])
 
 
 def _slugify(name: str) -> str:
@@ -29,7 +29,7 @@ async def _make_unique_slug(db: AsyncSession, base_slug: str) -> str:
     return slug
 
 
-@router.post("/")
+@router.post("")
 async def create_restaurant(
     data: dict,
     db: AsyncSession = Depends(get_db),
@@ -40,6 +40,10 @@ async def create_restaurant(
     restaurant = Restaurant(
         name=data["name"],
         address=data.get("address"),
+        description=data.get("description"),
+        logo_url=data.get("logo_url"),
+        phone=data.get("phone"),
+        horarios=data.get("horarios"),
         slug=slug,
         owner_id=current_user.id,
     )
@@ -49,56 +53,62 @@ async def create_restaurant(
     return restaurant
 
 
-@router.get("/")
-async def list_restaurants(
+@router.get("")
+async def get_restaurant(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_only),
 ):
+    """Obtener restaurante del usuario (enunciado: GET /api/v1/admin/restaurant)."""
     result = await db.execute(
         select(Restaurant).where(Restaurant.owner_id == current_user.id)
     )
-    return list(result.scalars().all())
+    restaurant = result.scalar_one_or_none()
+    return restaurant  # null cuando no tiene restaurante (frontend maneja onboarding)
 
 
-@router.put("/{restaurant_id}")
+@router.put("")
 async def update_restaurant(
-    restaurant_id: str,
     data: dict,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """Actualizar restaurante del usuario (enunciado: PUT /api/v1/admin/restaurant)."""
     result = await db.execute(
-        select(Restaurant).where(
-            Restaurant.id == restaurant_id,
-            Restaurant.owner_id == current_user.id,
-        )
+        select(Restaurant).where(Restaurant.owner_id == current_user.id)
     )
     restaurant = result.scalar_one_or_none()
     if not restaurant:
-        raise HTTPException(status_code=404, detail="Not found")
+        raise HTTPException(status_code=404, detail="Restaurant not found")
 
-    restaurant.name = data.get("name", restaurant.name)
-    restaurant.address = data.get("address", restaurant.address)
+    if "name" in data:
+        restaurant.name = data["name"]
+    if "address" in data:
+        restaurant.address = data["address"]
+    if "description" in data:
+        restaurant.description = data["description"]
+    if "logo_url" in data:
+        restaurant.logo_url = data["logo_url"]
+    if "phone" in data:
+        restaurant.phone = data["phone"]
+    if "horarios" in data:
+        restaurant.horarios = data["horarios"]
     await db.commit()
     await db.refresh(restaurant)
     return restaurant
 
 
-@router.delete("/{restaurant_id}")
+@router.delete("")
 async def delete_restaurant(
-    restaurant_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """Eliminar restaurante del usuario (enunciado: DELETE /api/v1/admin/restaurant)."""
     result = await db.execute(
-        select(Restaurant).where(
-            Restaurant.id == restaurant_id,
-            Restaurant.owner_id == current_user.id,
-        )
+        select(Restaurant).where(Restaurant.owner_id == current_user.id)
     )
     restaurant = result.scalar_one_or_none()
     if not restaurant:
-        raise HTTPException(status_code=404, detail="Not found")
+        raise HTTPException(status_code=404, detail="Restaurant not found")
 
     db.delete(restaurant)
     await db.commit()

@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 from app.core.database import get_db
-from app.core.deps import get_current_user
+from app.core.deps import get_current_user_only
 from app.services.dish_service import DishService
 from app.schemas.dish import DishCreate, DishUpdate, DishInDB
 
@@ -17,8 +17,10 @@ async def list_dishes(
     featured: Optional[bool] = None,
     search: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
-    user=Depends(get_current_user),
+    user=Depends(get_current_user_only),
 ):
+    if not getattr(user, "restaurant_id", None):
+        return []
     filters = {
         "category_id": category_id,
         "available": available,
@@ -32,8 +34,10 @@ async def list_dishes(
 async def get_dish(
     dish_id: str,
     db: AsyncSession = Depends(get_db),
-    user=Depends(get_current_user),
+    user=Depends(get_current_user_only),
 ):
+    if not getattr(user, "restaurant_id", None):
+        raise HTTPException(400, "Crea primero tu restaurante en Configuración")
     return await service.get(db, user.restaurant_id, dish_id)
 
 
@@ -41,8 +45,10 @@ async def get_dish(
 async def create_dish(
     payload: DishCreate,
     db: AsyncSession = Depends(get_db),
-    user=Depends(get_current_user),
+    user=Depends(get_current_user_only),
 ):
+    if not getattr(user, "restaurant_id", None):
+        raise HTTPException(400, "Crea primero tu restaurante en Configuración")
     return await service.create(db, user.restaurant_id, payload)
 
 
@@ -51,8 +57,10 @@ async def update_dish(
     dish_id: str,
     payload: DishUpdate,
     db: AsyncSession = Depends(get_db),
-    user=Depends(get_current_user),
+    user=Depends(get_current_user_only),
 ):
+    if not getattr(user, "restaurant_id", None):
+        raise HTTPException(400, "Crea primero tu restaurante en Configuración")
     return await service.update(db, user.restaurant_id, dish_id, payload)
 
 
@@ -60,8 +68,10 @@ async def update_dish(
 async def delete_dish(
     dish_id: str,
     db: AsyncSession = Depends(get_db),
-    user=Depends(get_current_user),
+    user=Depends(get_current_user_only),
 ):
+    if not getattr(user, "restaurant_id", None):
+        raise HTTPException(400, "Crea primero tu restaurante en Configuración")
     await service.delete(db, user.restaurant_id, dish_id)
     return {"message": "Dish deleted"}
 
@@ -70,6 +80,8 @@ async def delete_dish(
 async def toggle_availability(
     dish_id: str,
     db: AsyncSession = Depends(get_db),
-    user=Depends(get_current_user),
+    user=Depends(get_current_user_only),
 ):
+    if not getattr(user, "restaurant_id", None):
+        raise HTTPException(400, "Crea primero tu restaurante en Configuración")
     return await service.toggle_availability(db, user.restaurant_id, dish_id)
