@@ -12,12 +12,12 @@ from app.models.restaurant import Restaurant
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
-async def get_current_user(
+async def get_current_user_only(
     token: str = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_db),
 ) -> User:
+    """Valida JWT y retorna el usuario sin requerir restaurante."""
     cred_exc = HTTPException(status_code=401, detail="Invalid or expired token")
-
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         user_id: str | None = payload.get("sub")
@@ -26,18 +26,24 @@ async def get_current_user(
     except JWTError:
         raise cred_exc
 
-   
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:
         raise cred_exc
 
-   
     result = await db.execute(select(Restaurant).where(Restaurant.owner_id == user.id))
     restaurant = result.scalar_one_or_none()
-    if not restaurant:
-        raise HTTPException(status_code=400, detail="User has no restaurant associated")
+    if restaurant:
+        user.restaurant_id = restaurant.id
+    return user
 
-   
-    user.restaurant_id = restaurant.id
+
+async def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    """Valida JWT y retorna el usuario. Requiere que tenga restaurante asociado."""
+    user = await get_current_user_only(token, db)
+    if not hasattr(user, "restaurant_id") or user.restaurant_id is None:
+        raise HTTPException(status_code=400, detail="User has no restaurant associated")
     return user

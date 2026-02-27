@@ -47,9 +47,11 @@ docker compose up -d
 Esto levantará:
 - PostgreSQL en el puerto 5432
 - Backend FastAPI en el puerto 8000
+- Frontend (React + Vite) en el puerto 5173
 
 ### 4. Verificar que todo funciona
 
+- Frontend: http://localhost:5173
 - Backend API: http://localhost:8000
 - Documentación API (Swagger): http://localhost:8000/api/docs
 - Health check: http://localhost:8000/health
@@ -79,7 +81,7 @@ livemenu-app-G8-CloudSec/
 │   ├── tests/               # Tests unitarios e integración
 │   ├── Dockerfile
 │   └── requirements.txt
-├── frontend/                # Frontend (a desarrollar)
+├── frontend/                # Frontend React + Vite + Tailwind
 ├── docker-compose.yml
 ├── env.example
 └── README.md
@@ -89,10 +91,17 @@ livemenu-app-G8-CloudSec/
 
 ### Ejecutar en modo desarrollo
 
-El backend se ejecuta con auto-reload habilitado:
-
 ```bash
 docker compose up
+```
+
+El backend y frontend se ejecutan con auto-reload. Para desarrollar solo el frontend sin Docker:
+
+```bash
+cd frontend
+cp .env.example .env   # Ajusta VITE_API_URL si el backend está en otra URL
+npm install
+npm run dev
 ```
 
 ### Ejecutar tests
