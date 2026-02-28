@@ -36,7 +36,11 @@ async def get_current_user_only(
     if not user:
         raise cred_exc
 
-    result = await db.execute(select(Restaurant).where(Restaurant.owner_id == user.id))
+    result = await db.execute(
+        select(Restaurant)
+        .where(Restaurant.owner_id == user.id)
+        .limit(1)
+    )
     restaurant = result.scalar_one_or_none()
     if restaurant:
         user.restaurant_id = restaurant.id

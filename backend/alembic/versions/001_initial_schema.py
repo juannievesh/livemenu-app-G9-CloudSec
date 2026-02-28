@@ -43,6 +43,7 @@ def upgrade() -> None:
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.ForeignKeyConstraint(["owner_id"], ["users.id"]),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("owner_id"),
     )
     op.create_index(op.f("ix_restaurants_slug"), "restaurants", ["slug"], unique=True)
 

@@ -44,6 +44,12 @@ async def create_restaurant(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_only),
 ):
+    existing = await db.execute(
+        select(Restaurant).where(Restaurant.owner_id == current_user.id).limit(1)
+    )
+    if existing.scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="Ya tienes un restaurante. Solo se permite uno por usuario.")
+
     base_slug = _slugify(data.name)
     slug = await _make_unique_slug(db, base_slug)
     restaurant = Restaurant(

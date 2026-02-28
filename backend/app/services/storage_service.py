@@ -2,22 +2,24 @@ import logging
 import os
 from pathlib import Path
 
+from app.core.config import settings
+
 logger = logging.getLogger(__name__)
 
 
 class StorageService:
     def __init__(self):
-        self.storage_type = os.getenv("STORAGE_TYPE", "auto")
         self.client = None
+        configured = settings.STORAGE_TYPE.lower()
 
-        if self.storage_type == "auto":
-            self._auto_detect()
-        elif self.storage_type == "gcs":
+        if configured == "gcs":
             self._init_gcs()
+        elif configured == "local":
+            self._try_gcs_then_local()
         else:
-            self._init_local()
+            self._try_gcs_then_local()
 
-    def _auto_detect(self):
+    def _try_gcs_then_local(self):
         creds_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
         if creds_path and Path(creds_path).exists():
             try:
@@ -26,13 +28,23 @@ class StorageService:
                     data = json.load(f)
                 if data.get("private_key"):
                     self._init_gcs()
-                    if self.client:
+                    if self.client and self._verify_gcs():
                         self.storage_type = "gcs"
                         return
             except Exception:
                 pass
         self._init_local()
         self.storage_type = "local"
+
+    def _verify_gcs(self) -> bool:
+        try:
+            self.bucket.exists()
+            logger.info("GCS verificado: bucket accesible")
+            return True
+        except Exception as e:
+            logger.warning(f"GCS inaccesible ({e}), usando almacenamiento local")
+            self.client = None
+            return False
 
     # ── GCS ──────────────────────────────────────────────────────
 

@@ -119,10 +119,9 @@ if not logging.getLogger("livemenu.requests").handlers:
     h.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
     logging.getLogger("livemenu.requests").addHandler(h)
 
-if settings.STORAGE_TYPE == "local":
-    uploads_dir = Path(settings.STORAGE_PATH)
-    uploads_dir.mkdir(parents=True, exist_ok=True)
-    app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
+uploads_dir = Path(settings.STORAGE_PATH)
+uploads_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
 
 app.include_router(api_router, prefix="/api/v1")
 app.include_router(auth_router, prefix="/api/v1")
