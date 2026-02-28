@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 
 from sqlalchemy import func, select, update
+from sqlalchemy.orm import selectinload
 
 from app.models.category import Category
 from app.models.dish import Dish
@@ -15,7 +16,7 @@ class DishRepository:
             .join(Category)
             .where(
                 Category.restaurant_id == restaurant_id,
-                Dish.deleted_at.is_(None)
+                Dish.deleted_at.is_(None),
             )
         )
 
@@ -28,12 +29,20 @@ class DishRepository:
         if filters.get("featured") is not None:
             query = query.where(Dish.featured == filters["featured"])
 
+        if filters.get("search"):
+            term = f"%{filters['search']}%"
+            query = query.where(
+                Dish.name.ilike(term) | Dish.description.ilike(term)
+            )
+
         result = await db.execute(query.order_by(Dish.position))
         return result.scalars().all()
 
     async def get(self, db, dish_id):
         result = await db.execute(
-            select(Dish).where(Dish.id == dish_id)
+            select(Dish)
+            .options(selectinload(Dish.category))
+            .where(Dish.id == dish_id, Dish.deleted_at.is_(None))
         )
         return result.scalar_one_or_none()
 

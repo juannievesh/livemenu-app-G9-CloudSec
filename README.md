@@ -42,7 +42,7 @@ Edita `.env` y cambia:
 - Con GCP: coloca tu archivo de credenciales de servicio.
 - Sin GCP: `echo {} > gcp-credentials.json` (el backend arranca; la subida de imágenes fallará hasta configurar GCP).
 
-### 3. Levantar la base de datos y ejecutar migraciones
+### 3. Levantar los servicios
 
 **Importante:** Las migraciones deben ejecutarse antes de que el backend cree tablas. Sigue este orden:
 
@@ -50,34 +50,44 @@ Edita `.env` y cambia:
 # 1. Levantar solo la base de datos
 docker compose up -d db
 
-# 2. Esperar a que esté lista (unos segundos) y ejecutar migraciones
+# 2. Esperar a que esté lista (~5 segundos) y ejecutar migraciones
 docker compose run --rm backend alembic upgrade head
 
 # 3. Levantar el resto de servicios
 docker compose up -d
 ```
 
+> **Si ya tenías una base de datos anterior**, primero limpia los volúmenes:
+> ```bash
+> docker compose down -v
+> ```
+> Luego ejecuta los 3 pasos de arriba.
+
 ### 4. Verificar que todo funciona
 
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8000
-- Swagger: http://localhost:8000/api/docs
-- Health: http://localhost:8000/health
+- Swagger (documentación interactiva): http://localhost:8000/api/docs
+- ReDoc (documentación alternativa): http://localhost:8000/api/redoc
+- Health check: http://localhost:8000/health
 
 **Servicios y puertos:**
-- PostgreSQL: **54320** (host)
-- Backend: **8000**
-- Frontend: **3000**
+
+| Servicio   | Puerto (host) | Puerto (contenedor) |
+|------------|---------------|---------------------|
+| PostgreSQL | 54320         | 5432                |
+| Backend    | 8000          | 8000                |
+| Frontend   | 3000          | 5173                |
 
 ### Si las migraciones fallan con "relation already exists"
 
-Si ya ejecutaste `docker compose up -d` antes de las migraciones, el backend habrá creado tablas con `create_all`. En ese caso:
+Si el backend ya creó tablas con `create_all` antes de las migraciones:
 
 ```bash
 docker compose exec backend alembic stamp head
 ```
 
-Esto marca la base de datos como actualizada sin ejecutar migraciones. Luego reinicia el backend si es necesario.
+Esto marca la base de datos como actualizada sin re-ejecutar migraciones.
 
 ## Estructura del Proyecto
 

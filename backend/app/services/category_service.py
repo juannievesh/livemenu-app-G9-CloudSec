@@ -33,7 +33,7 @@ class CategoryService:
         if not category or category.restaurant_id != restaurant_id:
             raise HTTPException(404, "Category not found")
 
-        return await self.repo.update(db, category, data.dict(exclude_unset=True))
+        return await self.repo.update(db, category, data.model_dump(exclude_unset=True))
 
     async def delete(self, db, restaurant_id, category_id):
 

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { fetchApi } from '../services/api';
 import { OnboardingEmpty } from '../components/OnboardingEmpty';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Switch } from '../components/ui/switch';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, CheckCircle } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -30,6 +30,7 @@ interface Restaurant {
 }
 
 export default function Dishes() {
+  const location = useLocation();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -37,6 +38,17 @@ export default function Dishes() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState(
+    (location.state as { success?: string } | null)?.success || '',
+  );
+
+  useEffect(() => {
+    if (successMsg) {
+      const timer = setTimeout(() => setSuccessMsg(''), 4000);
+      window.history.replaceState({}, '');
+      return () => clearTimeout(timer);
+    }
+  }, [successMsg]);
 
   const load = async () => {
     try {
@@ -86,10 +98,17 @@ export default function Dishes() {
     return true;
   });
 
+  const resolveUrl = (url: string) => {
+    if (url.startsWith('http')) return url;
+    const base = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    return `${base}${url}`;
+  };
+
   const getImageUrl = (d: Dish) => {
     const urls = d.image_urls;
     if (!urls) return null;
-    return urls.thumbnail || urls.medium || urls.large || null;
+    const raw = urls.thumbnail || urls.medium || urls.large || null;
+    return raw ? resolveUrl(raw) : null;
   };
 
   if (loading) {
@@ -112,6 +131,11 @@ export default function Dishes() {
     <div className="flex flex-col min-h-screen p-6 pb-24 md:pb-6">
       <div className="w-full max-w-4xl mx-auto">
       <h1 className="text-xl font-bold mb-6">Platos</h1>
+      {successMsg && (
+        <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-sm">
+          <CheckCircle className="h-4 w-4 shrink-0" /> {successMsg}
+        </div>
+      )}
       {error && <p className="text-red-600 mb-4">{error}</p>}
 
       <div className="flex gap-2 mb-4">

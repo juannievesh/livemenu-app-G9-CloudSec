@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String, func
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -16,7 +16,7 @@ class Dish(Base):
     category_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("categories.id", ondelete="CASCADE"),
-        nullable=False
+        nullable=False,
     )
 
     name: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -33,6 +33,8 @@ class Dish(Base):
     tags: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
     position: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
 
     category = relationship("Category", back_populates="dishes")

@@ -1,8 +1,7 @@
-# backend/app/models/restaurant.py
-
 import uuid
+from datetime import datetime
 
-from sqlalchemy import Column, ForeignKey, String, Text
+from sqlalchemy import Column, DateTime, ForeignKey, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 
@@ -17,8 +16,12 @@ class Restaurant(Base):
     slug = Column(String, unique=True, index=True, nullable=False)
     description = Column(Text, nullable=True)
     address = Column(String, nullable=True)
-    logo_url = Column(String, nullable=True)  # URL en Object Storage
+    logo_url = Column(String, nullable=True)
     phone = Column(String, nullable=True)
-    horarios = Column(JSONB, nullable=True)  # ej: {"lunes": "12:00-22:00", "martes": "12:00-22:00"}
+    horarios = Column(JSONB, nullable=True)
     owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
     categories = relationship("Category", back_populates="restaurant", cascade="all, delete-orphan")

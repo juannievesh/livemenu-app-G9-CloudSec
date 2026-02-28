@@ -9,8 +9,9 @@ from app.core.database import get_db
 from app.core.deps import get_current_user, get_current_user_only
 from app.models.restaurant import Restaurant
 from app.models.user import User
+from app.schemas.restaurant import RestaurantCreate, RestaurantInDB, RestaurantUpdate
 
-router = APIRouter(prefix="/admin/restaurant", tags=["restaurants"])
+router = APIRouter(prefix="/admin/restaurant", tags=["Restaurante"])
 
 
 def _slugify(name: str) -> str:
@@ -30,21 +31,28 @@ async def _make_unique_slug(db: AsyncSession, base_slug: str) -> str:
     return slug
 
 
-@router.post("")
+@router.post(
+    "",
+    response_model=RestaurantInDB,
+    status_code=201,
+    summary="Crear restaurante",
+    description="Crea un nuevo restaurante asociado al usuario autenticado. "
+    "Se genera automáticamente un **slug** único a partir del nombre para la URL pública del menú.",
+)
 async def create_restaurant(
-    data: dict,
+    data: RestaurantCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_only),
 ):
-    base_slug = _slugify(data.get("name", "restaurant"))
+    base_slug = _slugify(data.name)
     slug = await _make_unique_slug(db, base_slug)
     restaurant = Restaurant(
-        name=data["name"],
-        address=data.get("address"),
-        description=data.get("description"),
-        logo_url=data.get("logo_url"),
-        phone=data.get("phone"),
-        horarios=data.get("horarios"),
+        name=data.name,
+        address=data.address,
+        description=data.description,
+        logo_url=data.logo_url,
+        phone=data.phone,
+        horarios=data.horarios,
         slug=slug,
         owner_id=current_user.id,
     )
@@ -54,26 +62,35 @@ async def create_restaurant(
     return restaurant
 
 
-@router.get("")
+@router.get(
+    "",
+    response_model=RestaurantInDB | None,
+    summary="Obtener mi restaurante",
+    description="Devuelve el restaurante del usuario autenticado. "
+    "Retorna `null` si aún no ha creado uno (el frontend usa esto para mostrar el onboarding).",
+)
 async def get_restaurant(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_only),
 ):
-    """Obtener restaurante del usuario (enunciado: GET /api/v1/admin/restaurant)."""
     result = await db.execute(
         select(Restaurant).where(Restaurant.owner_id == current_user.id)
     )
-    restaurant = result.scalar_one_or_none()
-    return restaurant  # null cuando no tiene restaurante (frontend maneja onboarding)
+    return result.scalar_one_or_none()
 
 
-@router.put("")
+@router.put(
+    "",
+    response_model=RestaurantInDB,
+    summary="Actualizar mi restaurante",
+    description="Actualiza los datos del restaurante del usuario autenticado. "
+    "Solo se modifican los campos incluidos en el body; los demás se mantienen sin cambios.",
+)
 async def update_restaurant(
-    data: dict,
+    data: RestaurantUpdate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Actualizar restaurante del usuario (enunciado: PUT /api/v1/admin/restaurant)."""
     result = await db.execute(
         select(Restaurant).where(Restaurant.owner_id == current_user.id)
     )
@@ -81,29 +98,29 @@ async def update_restaurant(
     if not restaurant:
         raise HTTPException(status_code=404, detail="Restaurant not found")
 
-    if "name" in data:
-        restaurant.name = data["name"]
-    if "address" in data:
-        restaurant.address = data["address"]
-    if "description" in data:
-        restaurant.description = data["description"]
-    if "logo_url" in data:
-        restaurant.logo_url = data["logo_url"]
-    if "phone" in data:
-        restaurant.phone = data["phone"]
-    if "horarios" in data:
-        restaurant.horarios = data["horarios"]
+    update_data = data.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(restaurant, field, value)
+
     await db.commit()
     await db.refresh(restaurant)
     return restaurant
 
 
-@router.delete("")
+@router.delete(
+    "",
+    summary="Eliminar mi restaurante",
+    description="Elimina permanentemente el restaurante del usuario autenticado, "
+    "incluyendo todas sus categorías y platos (cascade).",
+    responses={
+        200: {"description": "Restaurante eliminado correctamente", "content": {"application/json": {"example": {"message": "deleted"}}}},
+        404: {"description": "El usuario no tiene restaurante"},
+    },
+)
 async def delete_restaurant(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Eliminar restaurante del usuario (enunciado: DELETE /api/v1/admin/restaurant)."""
     result = await db.execute(
         select(Restaurant).where(Restaurant.owner_id == current_user.id)
     )
