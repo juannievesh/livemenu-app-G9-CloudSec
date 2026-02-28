@@ -46,13 +46,14 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen p-6 pb-24">
+    <div className="flex flex-col min-h-screen p-6 pb-24 md:pb-6">
+      <div className="w-full max-w-4xl mx-auto">
       <h1 className="text-xl font-bold mb-1">Bienvenido, {restaurant.name}</h1>
       <p className="text-slate-600 dark:text-slate-400 mb-6">Gestiona tu menú digital</p>
 
       {error && <p className="text-red-600 mb-4">{error}</p>}
 
-      <div className="space-y-4">
+      <div className="grid gap-4 md:grid-cols-2">
         {menuUrl && (
           <a
             href={menuUrl}
@@ -103,6 +104,7 @@ export default function Dashboard() {
             <p className="text-sm text-slate-500">Descarga e imprime</p>
           </div>
         </Link>
+      </div>
       </div>
     </div>
   );

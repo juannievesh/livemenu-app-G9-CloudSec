@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+
 from app.repositories.category_repository import CategoryRepository
 
 

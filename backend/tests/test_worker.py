@@ -1,14 +1,16 @@
 # backend/tests/test_worker.py
 
-import pytest
 import asyncio
-from io import BytesIO
-from PIL import Image
-from unittest.mock import patch, MagicMock
 import uuid
+from io import BytesIO
+from unittest.mock import patch
 
-from app.workers.pool import ImageWorkerPool
+import pytest
+from PIL import Image
+
 from app.services.qr_service import QRService
+from app.workers.pool import ImageWorkerPool
+
 
 def test_qr_generation_png():
     url = "https://livemenu.app/m/test"
@@ -33,22 +35,22 @@ def create_dummy_image_bytes() -> bytes:
 @pytest.mark.asyncio
 async def test_worker_pool_processing_and_upload():
     pool = ImageWorkerPool(max_workers=2)
-    
+
     with patch('app.workers.pool.storage_service.upload_image_variant') as mock_upload, \
-         patch('app.workers.pool.AsyncSessionLocal') as mock_db, \
-         patch('app.workers.pool.DishRepository') as mock_repo:
-        
+         patch('app.workers.pool.AsyncSessionLocal'), \
+         patch('app.workers.pool.DishRepository'):
+
         mock_upload.return_value = "https://storage.googleapis.com/fake-bucket/test.webp"
-        
+
         asyncio.create_task(pool.start())
         dummy_bytes = create_dummy_image_bytes()
-        
+
         test_dish_id = uuid.uuid4()
         await pool.add_task(dummy_bytes, "plato_test.jpg", test_dish_id)
-        
+
         await asyncio.sleep(0.5)
         await pool.shutdown()
-        
+
         assert mock_upload.call_count == 3, "El worker no subió todas las variantes"
         called_filenames = [call.args[1] for call in mock_upload.call_args_list]
         assert "plato_test_thumbnail.webp" in called_filenames

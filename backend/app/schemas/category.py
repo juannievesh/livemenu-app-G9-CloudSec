@@ -1,11 +1,11 @@
-from pydantic import BaseModel, Field
 from uuid import UUID
-from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class CategoryBase(BaseModel):
     name: str = Field(..., max_length=50)
-    description: Optional[str] = Field(None, max_length=500)
+    description: str | None = Field(None, max_length=500)
     active: bool = True
 
 
@@ -14,9 +14,9 @@ class CategoryCreate(CategoryBase):
 
 
 class CategoryUpdate(BaseModel):
-    name: Optional[str] = Field(None, max_length=50)
-    description: Optional[str] = Field(None, max_length=500)
-    active: Optional[bool] = None
+    name: str | None = Field(None, max_length=50)
+    description: str | None = Field(None, max_length=500)
+    active: bool | None = None
 
 
 class CategoryInDB(CategoryBase):

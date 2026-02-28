@@ -64,7 +64,8 @@ export default function QRCodePage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen p-6 pb-24">
+    <div className="flex flex-col min-h-screen p-6 pb-24 md:pb-6">
+      <div className="w-full max-w-2xl mx-auto">
       <h1 className="text-xl font-bold mb-2">Mi código QR</h1>
       <p className="text-slate-600 dark:text-slate-400 mb-6">
         Escanea para ver el menú de tu restaurante
@@ -120,6 +121,7 @@ export default function QRCodePage() {
       >
         {loading ? 'Descargando...' : 'Descargar código QR'}
       </button>
+      </div>
     </div>
   );
 }

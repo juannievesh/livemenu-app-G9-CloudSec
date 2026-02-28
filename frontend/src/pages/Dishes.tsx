@@ -109,7 +109,8 @@ export default function Dishes() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen p-6 pb-24">
+    <div className="flex flex-col min-h-screen p-6 pb-24 md:pb-6">
+      <div className="w-full max-w-4xl mx-auto">
       <h1 className="text-xl font-bold mb-6">Platos</h1>
       {error && <p className="text-red-600 mb-4">{error}</p>}
 
@@ -188,6 +189,7 @@ export default function Dishes() {
           </li>
         ))}
       </ul>
+      </div>
     </div>
   );
 }

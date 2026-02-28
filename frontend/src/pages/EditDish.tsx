@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Camera, Upload } from 'lucide-react';
 import { fetchApi } from '../services/api';
 import { OnboardingEmpty } from '../components/OnboardingEmpty';
 import { Button } from '../components/ui/button';
@@ -129,17 +130,24 @@ export default function EditDish() {
     }
   };
 
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !id || isNew) return;
     setUploading(true);
     setError('');
+    setUploadSuccess(false);
+
+    const localUrl = URL.createObjectURL(file);
+    setImagePreview(localUrl);
+
     try {
       const token = localStorage.getItem('token');
       const form = new FormData();
       form.append('file', file);
       form.append('dish_id', id);
-      const res = await fetch(`${API_BASE}/api/v1/admin/upload`, {
+      const res = await fetch(`${API_BASE}/api/v1/admin/upload/`, {
         method: 'POST',
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: form,
@@ -150,9 +158,11 @@ export default function EditDish() {
       }
       await res.json();
       setError('');
-      setImagePreview(null);
+      setUploadSuccess(true);
+      setTimeout(() => setUploadSuccess(false), 4000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error');
+      setImagePreview(null);
     } finally {
       setUploading(false);
     }
@@ -175,7 +185,8 @@ export default function EditDish() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen p-6 pb-24">
+    <div className="flex flex-col min-h-screen p-6 pb-24 md:pb-6">
+      <div className="w-full max-w-2xl mx-auto">
       <h1 className="text-xl font-bold mb-6">
         {isNew ? 'Nuevo plato' : 'Editar plato'}
       </h1>
@@ -183,33 +194,41 @@ export default function EditDish() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <Label>Imagen</Label>
-          <div className="mt-2 flex items-center gap-4">
-            {imagePreview ? (
-              <img
-                src={imagePreview}
-                alt=""
-                className="h-24 w-24 rounded object-cover"
+          {!isNew ? (
+            <label className="mt-2 flex flex-col items-center gap-3 p-4 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-amber-400 dark:hover:border-amber-500 bg-slate-50 dark:bg-slate-800/50 cursor-pointer transition-colors">
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleUpload}
+                disabled={uploading}
               />
-            ) : (
-              <div className="h-24 w-24 rounded bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-400 text-sm">
-                Sin imagen
+              {imagePreview ? (
+                <img src={imagePreview} alt="" className="h-32 w-32 rounded-lg object-cover" />
+              ) : (
+                <div className="h-32 w-32 rounded-lg bg-slate-200 dark:bg-slate-700 flex flex-col items-center justify-center text-slate-400">
+                  <Camera className="h-8 w-8 mb-1" />
+                  <span className="text-xs">Sin imagen</span>
+                </div>
+              )}
+              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-600 dark:text-amber-400">
+                <Upload className="h-4 w-4" />
+                {uploading ? 'Subiendo...' : imagePreview ? 'Cambiar imagen' : 'Subir imagen'}
+              </span>
+              <span className="text-xs text-slate-400">JPG, PNG o WebP (max 5 MB)</span>
+              {uploadSuccess && (
+                <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Imagen subida correctamente. Se procesará en segundo plano.</span>
+              )}
+            </label>
+          ) : (
+            <div className="mt-2 flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+              <div className="h-24 w-24 rounded-lg bg-slate-200 dark:bg-slate-700 flex flex-col items-center justify-center text-slate-400">
+                <Camera className="h-8 w-8 mb-1" />
+                <span className="text-xs">Sin imagen</span>
               </div>
-            )}
-            {!isNew && (
-              <label className="cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="hidden"
-                  onChange={handleUpload}
-                  disabled={uploading}
-                />
-                <span className="text-sm text-amber-600 hover:underline">
-                  {uploading ? 'Subiendo...' : 'Subir imagen'}
-                </span>
-              </label>
-            )}
-          </div>
+              <p className="text-xs text-slate-400 text-center">Guarda el plato primero para subir una imagen</p>
+            </div>
+          )}
         </div>
 
         <div>
@@ -302,6 +321,7 @@ export default function EditDish() {
           </Button>
         </div>
       </form>
+      </div>
     </div>
   );
 }

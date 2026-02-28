@@ -6,7 +6,7 @@ export function BottomNav() {
   const path = useLocation().pathname;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-100 dark:border-slate-800 pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-100 dark:border-slate-800 pb-safe md:hidden">
       <div className="flex justify-around items-center px-2 py-3">
         <Link to="/" className="flex flex-col items-center gap-1 min-w-[64px] group">
           <Home className={cn("h-6 w-6", path === '/' ? "text-amber-500" : "text-slate-500")} />

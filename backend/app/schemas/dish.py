@@ -1,17 +1,17 @@
-from pydantic import BaseModel, Field
-from uuid import UUID
-from typing import Optional, List
 from decimal import Decimal
+from uuid import UUID
+
+from pydantic import BaseModel, Field
 
 
 class DishBase(BaseModel):
     name: str = Field(..., max_length=100)
-    description: Optional[str] = Field(None, max_length=300)
+    description: str | None = Field(None, max_length=300)
     price: Decimal = Field(..., gt=0)
-    offer_price: Optional[Decimal] = Field(None, gt=0)
+    offer_price: Decimal | None = Field(None, gt=0)
     available: bool = True
     featured: bool = False
-    tags: List[str] = []
+    tags: list[str] = []
 
 
 class DishCreate(DishBase):
@@ -19,20 +19,20 @@ class DishCreate(DishBase):
 
 
 class DishUpdate(BaseModel):
-    name: Optional[str] = Field(None, max_length=100)
-    description: Optional[str] = Field(None, max_length=300)
-    price: Optional[Decimal] = Field(None, gt=0)
-    offer_price: Optional[Decimal] = Field(None, gt=0)
-    available: Optional[bool] = None
-    featured: Optional[bool] = None
-    tags: Optional[List[str]] = None
-    category_id: Optional[UUID] = None
+    name: str | None = Field(None, max_length=100)
+    description: str | None = Field(None, max_length=300)
+    price: Decimal | None = Field(None, gt=0)
+    offer_price: Decimal | None = Field(None, gt=0)
+    available: bool | None = None
+    featured: bool | None = None
+    tags: list[str] | None = None
+    category_id: UUID | None = None
 
 
 class DishInDB(DishBase):
     id: UUID
     category_id: UUID
-    image_urls: Optional[dict]
+    image_urls: dict | None
     position: int
 
     class Config:

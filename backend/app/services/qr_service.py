@@ -1,8 +1,10 @@
 # backend/app/services/qr_service.py
 
+from io import BytesIO
+
 import qrcode
 import qrcode.image.svg
-from io import BytesIO
+
 
 class QRService:
     @staticmethod
@@ -24,7 +26,7 @@ class QRService:
         qr.make(fit=True)
 
         img_io = BytesIO()
-        
+
         if format_type.lower() == 'svg':
             factory = qrcode.image.svg.SvgImage
             img = qr.make_image(image_factory=factory)
@@ -32,6 +34,6 @@ class QRService:
         else:
             img = qr.make_image(fill_color="black", back_color="white")
             img.save(img_io, format='PNG')
-            
+
         img_io.seek(0)
         return img_io

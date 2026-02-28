@@ -1,9 +1,10 @@
 # backend/app/services/storage_service.py
 
-from google.cloud import storage
-from google.cloud.exceptions import GoogleCloudError
 import logging
 import os
+
+from google.cloud import storage
+from google.cloud.exceptions import GoogleCloudError
 
 logger = logging.getLogger(__name__)
 
@@ -21,21 +22,21 @@ class StorageService:
         """Sube un archivo a GCS y retorna la URL pública."""
         if not self.client:
             raise RuntimeError("GCP Client inactivo. Revisa tus credenciales.")
-            
+
         try:
             blob = self.bucket.blob(filename)
-            
+
             blob.upload_from_string(
                 data=file_bytes,
                 content_type=content_type
             )
-            
+
             return blob.public_url
-            
+
         except GoogleCloudError as e:
             logger.error(f"Error subiendo {filename} a GCS: {e}")
             raise e
-    
+
 
     def delete_image(self, filename: str) -> bool:
         """
@@ -45,7 +46,7 @@ class StorageService:
         if not self.client:
             logger.error("Intento de borrado sin cliente GCP activo.")
             return False
-            
+
         try:
             blob = self.bucket.blob(filename)
             blob.delete()

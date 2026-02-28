@@ -1,11 +1,13 @@
 # backend/app/models/restaurant.py
 
-from sqlalchemy import Column, String, ForeignKey, Text
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.orm import relationship
 import uuid
 
+from sqlalchemy import Column, ForeignKey, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.orm import relationship
+
 from app.core.database import Base
+
 
 class Restaurant(Base):
     __tablename__ = "restaurants"

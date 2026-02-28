@@ -1,26 +1,24 @@
 import logging
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from app.core.config import settings
-from app.core.database import engine, Base
-from app.core.rate_limit import RateLimitMiddleware
-from app.core.request_logging import RequestLoggingMiddleware
-
-from fastapi import Request, Depends
+from fastapi import Depends, FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from app.api.v1 import api_router
-from app.api.v1.auth.router import router as auth_router
-from app.api.v1.restaurants.router import router as restaurants_router
 from app.api.v1.admin.categories.router import router as categories_router
 from app.api.v1.admin.dishes.router import router as dishes_router
 from app.api.v1.admin.qr.router import router as qr_router
-from app.api.v1.menu.router import router as menu_router, get_cached_menu
 from app.api.v1.admin.upload.router import router as upload_router
-from app.core.database import get_db
+from app.api.v1.auth.router import router as auth_router
+from app.api.v1.menu.router import get_cached_menu
+from app.api.v1.menu.router import router as menu_router
+from app.api.v1.restaurants.router import router as restaurants_router
+from app.core.config import settings
+from app.core.database import Base, engine, get_db
+from app.core.rate_limit import RateLimitMiddleware
+from app.core.request_logging import RequestLoggingMiddleware
 from app.workers.pool import image_pool
 
 templates = Jinja2Templates(directory="app/templates")
@@ -30,7 +28,6 @@ templates = Jinja2Templates(directory="app/templates")
 # Gestión del ciclo de vida
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    import app.models  # Registra metadatos de modelos
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     print("Iniciando Worker Pool de imágenes...")

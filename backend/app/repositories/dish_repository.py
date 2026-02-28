@@ -1,7 +1,9 @@
-from sqlalchemy import select, func, update
-from datetime import datetime, timezone
-from app.models.dish import Dish
+from datetime import UTC, datetime
+
+from sqlalchemy import func, select, update
+
 from app.models.category import Category
+from app.models.dish import Dish
 
 
 class DishRepository:
@@ -48,7 +50,7 @@ class DishRepository:
         await db.commit()
         await db.refresh(dish)
         return dish
-    
+
     async def update_image_urls(self, db, dish_id, urls: dict):
         """Actualiza el campo JSONB con las nuevas URLs generadas en la nube."""
         await db.execute(
@@ -57,7 +59,7 @@ class DishRepository:
         await db.commit()
 
     async def soft_delete(self, db, dish):
-        dish.deleted_at = datetime.now(timezone.utc)
+        dish.deleted_at = datetime.now(UTC)
         await db.commit()
 
     async def verify_dish_ownership(self, db, dish_id, owner_id) -> bool:
@@ -66,6 +68,7 @@ class DishRepository:
         de un restaurante cuyo owner_id coincida con el usuario autenticado.
         """
         from sqlalchemy import select
+
         from app.models.category import Category
         from app.models.restaurant import Restaurant
 

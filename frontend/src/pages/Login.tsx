@@ -140,7 +140,7 @@ export default function Login() {
           )}
           <Button
             type="submit"
-            className={`w-full font-semibold ${
+            className={`w-full font-semibold text-white ${
               isLogin 
                 ? 'bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600' 
                 : 'bg-amber-500 hover:bg-amber-600 dark:bg-amber-500 dark:hover:bg-amber-600'

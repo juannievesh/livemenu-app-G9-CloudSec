@@ -1,13 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 import re
 import uuid as uuid_module
 
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_db
 from app.core.deps import get_current_user, get_current_user_only
-from app.models.user import User
 from app.models.restaurant import Restaurant
+from app.models.user import User
 
 router = APIRouter(prefix="/admin/restaurant", tags=["restaurants"])
 
@@ -21,7 +22,7 @@ def _slugify(name: str) -> str:
 
 async def _make_unique_slug(db: AsyncSession, base_slug: str) -> str:
     slug = base_slug
-    for i in range(100):
+    for _i in range(100):
         result = await db.execute(select(Restaurant).where(Restaurant.slug == slug))
         if result.scalar_one_or_none() is None:
             return slug

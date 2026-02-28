@@ -125,7 +125,8 @@ export default function Categories() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen p-6 pb-24">
+    <div className="flex flex-col min-h-screen p-6 pb-24 md:pb-6">
+      <div className="w-full max-w-4xl mx-auto">
       <h1 className="text-xl font-bold mb-6">Categorías</h1>
       {error && <p className="text-red-600 mb-4">{error}</p>}
 
@@ -173,6 +174,8 @@ export default function Categories() {
           </li>
         ))}
       </ul>
+
+      </div>
 
       {modal.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">

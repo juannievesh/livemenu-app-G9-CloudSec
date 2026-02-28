@@ -1,14 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_db
-from app.core.deps import get_current_user, get_current_user_only
+from app.core.deps import get_current_user_only
+from app.schemas.category import CategoryCreate, CategoryInDB, CategoryReorder, CategoryUpdate
 from app.services.category_service import CategoryService
-from app.schemas.category import (
-    CategoryCreate,
-    CategoryUpdate,
-    CategoryReorder,
-    CategoryInDB
-)
 
 router = APIRouter(prefix="/categories",tags=["Admin Categories"])
 service = CategoryService()

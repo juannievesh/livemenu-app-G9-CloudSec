@@ -1,10 +1,11 @@
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional
+
 from app.core.database import get_db
 from app.core.deps import get_current_user_only
+from app.schemas.dish import DishCreate, DishInDB, DishUpdate
 from app.services.dish_service import DishService
-from app.schemas.dish import DishCreate, DishUpdate, DishInDB
 
 router = APIRouter(prefix="/dishes",tags=["Admin Dishes"])
 service = DishService()
@@ -12,10 +13,10 @@ service = DishService()
 
 @router.get("", response_model=list[DishInDB])
 async def list_dishes(
-    category_id: Optional[str] = None,
-    available: Optional[bool] = None,
-    featured: Optional[bool] = None,
-    search: Optional[str] = None,
+    category_id: str | None = None,
+    available: bool | None = None,
+    featured: bool | None = None,
+    search: str | None = None,
     db: AsyncSession = Depends(get_db),
     user=Depends(get_current_user_only),
 ):

@@ -1,8 +1,9 @@
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException
+
+from app.core.security import hash_password, verify_password
 from app.models.user import User
-from app.core.security import verify_password, hash_password
 
 
 async def register_user(db: AsyncSession, email: str, password: str):
