@@ -1,18 +1,19 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from app.services.storage_service import StorageService
 
 
-def _make_service_with_mock_client():
-    with patch("app.services.storage_service.storage"):
-        svc = StorageService()
-        svc.client = MagicMock()
-        svc.bucket = MagicMock()
-        return svc
+def _make_gcs_service():
+    """Creates a StorageService wired to mock GCS (bypasses __init__)."""
+    svc = StorageService.__new__(StorageService)
+    svc.storage_type = "gcs"
+    svc.client = MagicMock()
+    svc.bucket = MagicMock()
+    return svc
 
 
 def test_upload_image_variant_success():
-    svc = _make_service_with_mock_client()
+    svc = _make_gcs_service()
     blob = MagicMock()
     blob.public_url = "https://storage.googleapis.com/bucket/img.webp"
     svc.bucket.blob.return_value = blob
@@ -24,6 +25,7 @@ def test_upload_image_variant_success():
 
 def test_upload_image_variant_no_client():
     svc = StorageService.__new__(StorageService)
+    svc.storage_type = "gcs"
     svc.client = None
     try:
         svc.upload_image_variant(b"\x00", "x.webp")
@@ -33,7 +35,7 @@ def test_upload_image_variant_no_client():
 
 
 def test_delete_image_success():
-    svc = _make_service_with_mock_client()
+    svc = _make_gcs_service()
     blob = MagicMock()
     svc.bucket.blob.return_value = blob
     assert svc.delete_image("old.webp") is True
@@ -42,5 +44,6 @@ def test_delete_image_success():
 
 def test_delete_image_no_client():
     svc = StorageService.__new__(StorageService)
+    svc.storage_type = "gcs"
     svc.client = None
     assert svc.delete_image("x.webp") is False

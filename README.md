@@ -132,8 +132,25 @@ npm run dev
 ### Ejecutar tests
 
 ```bash
+# Suite completa (62 tests) con cobertura
 docker compose exec backend pytest
+
+# Un archivo específico
+docker compose exec backend pytest tests/test_category_service.py
+
+# Un test específico
+docker compose exec backend pytest tests/test_category_service.py::test_delete_category_with_dishes_should_fail
+
+# Solo ver resumen sin cobertura
+docker compose exec backend pytest --no-cov -q
 ```
+
+La configuración de pytest (`backend/pytest.ini`) incluye:
+- **Cobertura automática** (`--cov=app`) con reporte en terminal y HTML (`backend/htmlcov/`)
+- **Modo asyncio auto** para tests async sin decoradores extra
+- **Markers**: `unit`, `integration`, `slow`
+
+> **Cobertura mínima requerida:** 60% (actualmente ~74%)
 
 ### Ver logs
 
