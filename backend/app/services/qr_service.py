@@ -1,5 +1,3 @@
-# backend/app/services/qr_service.py
-
 from io import BytesIO
 
 import qrcode

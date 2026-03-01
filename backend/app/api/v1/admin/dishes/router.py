@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,7 +20,7 @@ service = DishService()
     "Se pueden aplicar filtros opcionales por categoría, disponibilidad, destacados y texto de búsqueda.",
 )
 async def list_dishes(
-    category_id: str | None = Query(None, description="Filtrar por UUID de categoría"),
+    category_id: UUID | None = Query(None, description="Filtrar por UUID de categoría"),
     available: bool | None = Query(None, description="Filtrar por disponibilidad"),
     featured: bool | None = Query(None, description="Filtrar solo platos destacados"),
     search: str | None = Query(None, description="Buscar por nombre o descripción"),
@@ -46,7 +48,7 @@ async def list_dishes(
     },
 )
 async def get_dish(
-    dish_id: str,
+    dish_id: UUID,
     db: AsyncSession = Depends(get_db),
     user=Depends(get_current_user_only),
 ):
@@ -88,7 +90,7 @@ async def create_dish(
     },
 )
 async def update_dish(
-    dish_id: str,
+    dish_id: UUID,
     payload: DishUpdate,
     db: AsyncSession = Depends(get_db),
     user=Depends(get_current_user_only),
@@ -109,7 +111,7 @@ async def update_dish(
     },
 )
 async def delete_dish(
-    dish_id: str,
+    dish_id: UUID,
     db: AsyncSession = Depends(get_db),
     user=Depends(get_current_user_only),
 ):
@@ -127,7 +129,7 @@ async def delete_dish(
     "Útil para marcar rápidamente un plato como agotado.",
 )
 async def toggle_availability(
-    dish_id: str,
+    dish_id: UUID,
     db: AsyncSession = Depends(get_db),
     user=Depends(get_current_user_only),
 ):

@@ -1,5 +1,3 @@
-# backend/tests/test_worker.py
-
 import asyncio
 import uuid
 from io import BytesIO

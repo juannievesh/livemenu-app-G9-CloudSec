@@ -23,6 +23,8 @@ from app.core.rate_limit import RateLimitMiddleware
 from app.core.request_logging import RequestLoggingMiddleware
 from app.workers.pool import image_pool
 
+logger = logging.getLogger(__name__)
+
 templates = Jinja2Templates(directory="app/templates")
 
 tags_metadata = [
@@ -63,7 +65,6 @@ tags_metadata = [
     },
 ]
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
@@ -72,7 +73,9 @@ async def lifespan(app: FastAPI):
     await image_pool.start()
     yield
     print("Deteniendo Worker Pool limpiamente...")
+    logger.info("Señal de apagado recibida. Deteniendo workers de forma segura...")
     await image_pool.shutdown()
+    logger.info("Apagado completado.")
 
 
 app = FastAPI(

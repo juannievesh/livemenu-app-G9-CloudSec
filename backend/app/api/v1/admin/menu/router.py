@@ -1,5 +1,3 @@
-# backend/app/api/v1/menu/router.py
-
 from datetime import datetime, timedelta
 from typing import Any
 
