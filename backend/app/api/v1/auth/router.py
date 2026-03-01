@@ -1,30 +1,60 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from .schemas import LoginRequest
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_db
-from .schemas import RegisterRequest
-from .service import register_user
-from .service import authenticate_user
-from fastapi import HTTPException
-from sqlalchemy.orm import Session
+from app.core.deps import get_current_user
 from app.core.jwt import create_access_token
 
-router = APIRouter(prefix="/auth", tags=["auth"])
-@router.post("/register")
-def register(data: RegisterRequest, db: Session = Depends(get_db)):
-    user = register_user(db, data.email, data.password)
-    return {"id": str(user.id), "email": user.email}
-@router.post("/login")
+from .schemas import LoginRequest, RegisterRequest, TokenResponse, UserResponse
+from .service import authenticate_user, register_user
 
-@router.post("/login")
-def login(data: LoginRequest, db=Depends(get_db)):
-    user = authenticate_user(db, data.email, data.password)
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+router = APIRouter(prefix="/auth", tags=["Autenticación"])
+
+
+@router.post(
+    "/register",
+    response_model=UserResponse,
+    status_code=201,
+    summary="Registrar nuevo usuario",
+    description="Crea una cuenta de usuario nueva. El email debe ser único en el sistema.",
+    responses={
+        201: {"description": "Usuario creado exitosamente"},
+        400: {"description": "El email ya está registrado"},
+    },
+)
+async def register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
+    user = await register_user(db, data.email, data.password)
+    return user
+
+
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    summary="Iniciar sesión",
+    description="Autentica un usuario con email y contraseña. "
+    "Devuelve un JWT token que debe enviarse en el header `Authorization: Bearer <token>` "
+    "para acceder a los endpoints protegidos.",
+    responses={
+        200: {"description": "Login exitoso, devuelve JWT token"},
+        401: {"description": "Credenciales incorrectas"},
+    },
+)
+async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
+    user = await authenticate_user(db, data.email, data.password)
     token = create_access_token({"sub": str(user.id)})
     return {"access_token": token, "token_type": "bearer"}
-from app.core.deps import get_current_user
 
-@router.get("/me")
-def me(current_user=Depends(get_current_user)):
-    return {"id": str(current_user.id), "email": current_user.email}
+
+@router.get(
+    "/me",
+    response_model=UserResponse,
+    summary="Obtener usuario actual",
+    description="Devuelve los datos del usuario autenticado. "
+    "Útil para verificar que el token es válido y obtener el ID del usuario.",
+    responses={
+        200: {"description": "Datos del usuario autenticado"},
+        401: {"description": "Token inválido o expirado"},
+    },
+)
+async def me(current_user=Depends(get_current_user)):
+    return current_user

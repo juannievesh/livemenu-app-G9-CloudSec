@@ -1,4 +1,5 @@
-from sqlalchemy import select, func, update, delete
+from sqlalchemy import func, select
+
 from app.models.category import Category
 from app.models.dish import Dish
 

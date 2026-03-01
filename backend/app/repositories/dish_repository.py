@@ -1,7 +1,10 @@
-from sqlalchemy import select, func, update
-from datetime import datetime, timezone
-from app.models.dish import Dish
+from datetime import UTC, datetime
+
+from sqlalchemy import func, select, update
+from sqlalchemy.orm import selectinload
+
 from app.models.category import Category
+from app.models.dish import Dish
 
 
 class DishRepository:
@@ -13,7 +16,7 @@ class DishRepository:
             .join(Category)
             .where(
                 Category.restaurant_id == restaurant_id,
-                Dish.deleted_at.is_(None)
+                Dish.deleted_at.is_(None),
             )
         )
 
@@ -26,12 +29,20 @@ class DishRepository:
         if filters.get("featured") is not None:
             query = query.where(Dish.featured == filters["featured"])
 
+        if filters.get("search"):
+            term = f"%{filters['search']}%"
+            query = query.where(
+                Dish.name.ilike(term) | Dish.description.ilike(term)
+            )
+
         result = await db.execute(query.order_by(Dish.position))
         return result.scalars().all()
 
     async def get(self, db, dish_id):
         result = await db.execute(
-            select(Dish).where(Dish.id == dish_id)
+            select(Dish)
+            .options(selectinload(Dish.category))
+            .where(Dish.id == dish_id, Dish.deleted_at.is_(None))
         )
         return result.scalar_one_or_none()
 
@@ -48,7 +59,7 @@ class DishRepository:
         await db.commit()
         await db.refresh(dish)
         return dish
-    
+
     async def update_image_urls(self, db, dish_id, urls: dict):
         """Actualiza el campo JSONB con las nuevas URLs generadas en la nube."""
         await db.execute(
@@ -57,7 +68,7 @@ class DishRepository:
         await db.commit()
 
     async def soft_delete(self, db, dish):
-        dish.deleted_at = datetime.now(timezone.utc)
+        dish.deleted_at = datetime.now(UTC)
         await db.commit()
 
     async def verify_dish_ownership(self, db, dish_id, owner_id) -> bool:
@@ -66,6 +77,7 @@ class DishRepository:
         de un restaurante cuyo owner_id coincida con el usuario autenticado.
         """
         from sqlalchemy import select
+
         from app.models.category import Category
         from app.models.restaurant import Restaurant
 

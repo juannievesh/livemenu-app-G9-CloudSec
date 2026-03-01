@@ -21,51 +21,78 @@ La guía de división de trabajo está disponible en la wiki del repositorio.
 
 ```bash
 git clone <url-del-repositorio>
-cd livemenu-app-G8-CloudSec
+cd livemenu-app-G9-CloudSec
 ```
 
 ### 2. Configurar variables de entorno
 
-Copia el archivo de ejemplo y ajusta las variables según necesites:
+Copia el archivo de ejemplo y ajusta las variables:
 
 ```bash
-cp env.example .env
+cp .env.example .env
 ```
 
-Edita el archivo `.env` y cambia especialmente:
-- `SECRET_KEY`: Genera una clave secreta segura para JWT:
+Edita `.env` y cambia:
+- `SECRET_KEY`: Genera una clave segura para JWT:
   - **Windows (PowerShell):** `python -c "import secrets; print(secrets.token_urlsafe(32))"`
   - **Linux/Mac:** `openssl rand -hex 32` o `python -c "import secrets; print(secrets.token_urlsafe(32))"`
-- `POSTGRES_PASSWORD`: Cambia la contraseña de la base de datos
+- `POSTGRES_PASSWORD`: Contraseña de la base de datos
 
-### 3. Levantar los servicios con Docker Compose
+**Imágenes (GCP):** El backend monta `gcp-credentials.json` desde la raíz. Crea el archivo antes de levantar:
+- Con GCP: coloca tu archivo de credenciales de servicio.
+- Sin GCP: `echo {} > gcp-credentials.json` (el backend arranca; la subida de imágenes fallará hasta configurar GCP).
+
+### 3. Levantar los servicios
+
+**Importante:** Las migraciones deben ejecutarse antes de que el backend cree tablas. Sigue este orden:
 
 ```bash
+# 1. Levantar solo la base de datos
+docker compose up -d db
+
+# 2. Esperar a que esté lista (~5 segundos) y ejecutar migraciones
+docker compose run --rm backend alembic upgrade head
+
+# 3. Levantar el resto de servicios
 docker compose up -d
 ```
 
-Esto levantará:
-- PostgreSQL en el puerto 5432
-- Backend FastAPI en el puerto 8000
+> **Si ya tenías una base de datos anterior**, primero limpia los volúmenes:
+> ```bash
+> docker compose down -v
+> ```
+> Luego ejecuta los 3 pasos de arriba.
 
 ### 4. Verificar que todo funciona
 
+- Frontend: http://localhost:3000
 - Backend API: http://localhost:8000
-- Documentación API (Swagger): http://localhost:8000/api/docs
+- Swagger (documentación interactiva): http://localhost:8000/api/docs
+- ReDoc (documentación alternativa): http://localhost:8000/api/redoc
 - Health check: http://localhost:8000/health
 
-### 5. Ejecutar migraciones de base de datos
+**Servicios y puertos:**
 
-Una vez que los modelos estén definidos, ejecuta:
+| Servicio   | Puerto (host) | Puerto (contenedor) |
+|------------|---------------|---------------------|
+| PostgreSQL | 54320         | 5432                |
+| Backend    | 8000          | 8000                |
+| Frontend   | 3000          | 5173                |
+
+### Si las migraciones fallan con "relation already exists"
+
+Si el backend ya creó tablas con `create_all` antes de las migraciones:
 
 ```bash
-docker compose exec backend alembic upgrade head
+docker compose exec backend alembic stamp head
 ```
+
+Esto marca la base de datos como actualizada sin re-ejecutar migraciones.
 
 ## Estructura del Proyecto
 
 ```
-livemenu-app-G8-CloudSec/
+livemenu-app-G9-CloudSec/
 ├── backend/
 │   ├── app/
 │   │   ├── api/
@@ -79,9 +106,9 @@ livemenu-app-G8-CloudSec/
 │   ├── tests/               # Tests unitarios e integración
 │   ├── Dockerfile
 │   └── requirements.txt
-├── frontend/                # Frontend (a desarrollar)
+├── frontend/                # Frontend React + Vite + Tailwind
 ├── docker-compose.yml
-├── env.example
+├── .env.example
 └── README.md
 ```
 
@@ -89,17 +116,41 @@ livemenu-app-G8-CloudSec/
 
 ### Ejecutar en modo desarrollo
 
-El backend se ejecuta con auto-reload habilitado:
-
 ```bash
 docker compose up
+```
+
+El backend y frontend se ejecutan con auto-reload. Para desarrollar solo el frontend sin Docker:
+
+```bash
+cd frontend
+cp .env.example .env   # Ajusta VITE_API_URL si el backend está en otra URL
+npm install
+npm run dev
 ```
 
 ### Ejecutar tests
 
 ```bash
+# Suite completa (62 tests) con cobertura
 docker compose exec backend pytest
+
+# Un archivo específico
+docker compose exec backend pytest tests/test_category_service.py
+
+# Un test específico
+docker compose exec backend pytest tests/test_category_service.py::test_delete_category_with_dishes_should_fail
+
+# Solo ver resumen sin cobertura
+docker compose exec backend pytest --no-cov -q
 ```
+
+La configuración de pytest (`backend/pytest.ini`) incluye:
+- **Cobertura automática** (`--cov=app`) con reporte en terminal y HTML (`backend/htmlcov/`)
+- **Modo asyncio auto** para tests async sin decoradores extra
+- **Markers**: `unit`, `integration`, `slow`
+
+> **Cobertura mínima requerida:** 60% (actualmente ~74%)
 
 ### Ver logs
 
@@ -110,7 +161,7 @@ docker compose logs -f db
 
 ## Variables de Entorno
 
-Ver `env.example` para todas las variables disponibles. Las principales son:
+Ver `.env.example` para todas las variables disponibles. Las principales son:
 
 - `DATABASE_URL`: URL de conexión a PostgreSQL
 - `SECRET_KEY`: Clave secreta para JWT (cambiar en producción)

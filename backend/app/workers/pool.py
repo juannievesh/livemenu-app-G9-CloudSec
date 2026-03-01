@@ -1,13 +1,15 @@
 import asyncio
-from concurrent.futures import ProcessPoolExecutor
 import logging
 import os
+from concurrent.futures import ProcessPoolExecutor
 from io import BytesIO
-from PIL import Image
-from app.services.storage_service import storage_service
 from uuid import UUID
-from app.repositories.dish_repository import DishRepository
+
+from PIL import Image
+
 from app.core.database import AsyncSessionLocal
+from app.repositories.dish_repository import DishRepository
+from app.services.storage_service import storage_service
 
 logger = logging.getLogger(__name__)
 WORKER_POOL_SIZE = int(os.getenv("WORKER_POOL_SIZE", 4))
@@ -57,25 +59,25 @@ class ImageWorkerPool:
         while not self._shutdown_event.is_set():
             try:
                 task_data = await asyncio.wait_for(self.queue.get(), timeout=1.0)
-                
+
                 dish_id = task_data['dish_id']
-                
+
                 result = await loop.run_in_executor(
-                    self.executor, 
-                    process_image_cpu_bound, 
-                    task_data['bytes'], 
+                    self.executor,
+                    process_image_cpu_bound,
+                    task_data['bytes'],
                     task_data['filename']
                 )
 
                 if result['status'] == 'success':
                     base_name = result['filename'].split('.')[0]
                     urls_generadas = {}
-                    
+
                     for variant_name, img_bytes in result['variants'].items():
                         cloud_filename = f"{base_name}_{variant_name}.webp"
                         try:
                             url = await loop.run_in_executor(
-                                None, 
+                                None,
                                 storage_service.upload_image_variant,
                                 img_bytes,
                                 cloud_filename
@@ -83,9 +85,9 @@ class ImageWorkerPool:
                             urls_generadas[variant_name] = url
                         except Exception as e:
                             logger.error(f"GCP Upload fallido para {cloud_filename}: {e}")
-                            
+
                     logger.info(f"Variantes subidas a GCP: {urls_generadas}")
-                    
+
                     try:
                         async with AsyncSessionLocal() as db:
                             repo = DishRepository()
@@ -98,7 +100,7 @@ class ImageWorkerPool:
                     logger.error(f"Error procesando {result['filename']}: {result['message']}")
 
                 self.queue.task_done()
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 continue
             except asyncio.CancelledError:
                 break

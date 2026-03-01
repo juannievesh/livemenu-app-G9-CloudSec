@@ -1,6 +1,7 @@
 from fastapi import HTTPException
-from app.repositories.dish_repository import DishRepository
+
 from app.repositories.category_repository import CategoryRepository
+from app.repositories.dish_repository import DishRepository
 
 
 class DishService:
@@ -49,7 +50,7 @@ class DishService:
 
         dish = await self.get(db, restaurant_id, dish_id)
 
-        update_data = data.dict(exclude_unset=True)
+        update_data = data.model_dump(exclude_unset=True)
 
         if "offer_price" in update_data:
             price_to_check = update_data.get("price", dish.price)

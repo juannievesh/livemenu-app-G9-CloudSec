@@ -1,0 +1,29 @@
+# RNF06: Guías de estilo de Python con Ruff
+target-version = "py311"
+line-length = 120
+
+[lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "B008",   # do not perform function calls in argument defaults (FastAPI Depends)
+    "N805",   # first argument of a method should be named `self` (Pydantic validators)
+    "UP007",  # Use X | Y for union type hints (compat)
+]
+
+[lint.per-file-ignores]
+"tests/*" = ["N802", "N803", "B011"]
+"alembic/*" = ["E", "W", "F", "I", "N", "UP", "B", "SIM"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
