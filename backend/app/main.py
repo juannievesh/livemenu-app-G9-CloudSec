@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import logging
 
 from app.core.config import settings
 from app.core.database import engine, Base
@@ -16,7 +17,7 @@ from app.api.v1.menu.router import router as menu_router
 from app.api.v1.admin.upload.router import router as upload_router
 from app.workers.pool import image_pool
 
-
+logger = logging.getLogger(__name__)
 
 # Gestión del ciclo de vida
 @asynccontextmanager
@@ -25,7 +26,9 @@ async def lifespan(app: FastAPI):
     await image_pool.start()
     yield
     print("Deteniendo Worker Pool limpiamente...")
+    logger.info("Señal de apagado recibida. Deteniendo workers de forma segura...")
     await image_pool.shutdown()
+    logger.info("Apagado completado.")
 
 # Crear tablas (en producción usar migraciones)
 # Base.metadata.create_all(bind=engine)
@@ -56,7 +59,7 @@ app.include_router(categories_router, prefix="/api/v1/admin")
 app.include_router(dishes_router, prefix="/api/v1/admin")
 app.include_router(upload_router, prefix="/api/v1/admin/upload", tags=["upload"])
 app.include_router(qr_router, prefix="/api/v1/admin/qr", tags=["qr"])
-app.include_router(menu_router, tags=["menu"])
+# app.include_router(menu_router, tags=["menu"])
 app.include_router(menu_router, prefix="/api/v1/menu", tags=["Menu Público"])
 
 @app.get("/")
