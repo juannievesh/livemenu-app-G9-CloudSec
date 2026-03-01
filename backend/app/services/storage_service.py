@@ -1,5 +1,3 @@
-# backend/app/services/storage_service.py
-
 from google.cloud import storage
 from google.cloud.exceptions import GoogleCloudError
 import logging

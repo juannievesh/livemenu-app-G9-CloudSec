@@ -1,5 +1,3 @@
-# backend/app/api/v1/admin/qr/router.py
-
 from fastapi import APIRouter, Query, Depends, Request, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession

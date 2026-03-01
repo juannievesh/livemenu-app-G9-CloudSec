@@ -1,5 +1,3 @@
-# backend/app/api/v1/admin/upload/router.py
-
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, status, Depends
 from app.workers.pool import image_pool
 from app.services.storage_service import storage_service

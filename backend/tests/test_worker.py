@@ -1,5 +1,3 @@
-# backend/tests/test_worker.py
-
 import pytest
 import asyncio
 from io import BytesIO
@@ -33,23 +31,25 @@ def create_dummy_image_bytes() -> bytes:
 @pytest.mark.asyncio
 async def test_worker_pool_processing_and_upload():
     pool = ImageWorkerPool(max_workers=2)
+    await pool.start()
     
-    with patch('app.workers.pool.storage_service.upload_image_variant') as mock_upload, \
-         patch('app.workers.pool.AsyncSessionLocal') as mock_db, \
-         patch('app.workers.pool.DishRepository') as mock_repo:
-        
-        mock_upload.return_value = "https://storage.googleapis.com/fake-bucket/test.webp"
-        
-        asyncio.create_task(pool.start())
-        dummy_bytes = create_dummy_image_bytes()
-        
-        test_dish_id = uuid.uuid4()
-        await pool.add_task(dummy_bytes, "plato_test.jpg", test_dish_id)
-        
-        await asyncio.sleep(0.5)
+    try:
+        with patch('app.workers.pool.storage_service.upload_image_variant') as mock_upload, \
+             patch('app.workers.pool.AsyncSessionLocal') as mock_db, \
+             patch('app.workers.pool.DishRepository') as mock_repo:
+
+            mock_upload.return_value = "https://storage.googleapis.com/fake-bucket/test.webp"
+
+            dummy_bytes = create_dummy_image_bytes()
+            test_dish_id = uuid.uuid4()
+            
+            await pool.add_task(dummy_bytes, "plato_test.jpg", test_dish_id)
+
+            await asyncio.sleep(0.5)
+            assert mock_upload.call_count == 3, "El worker no subió todas las variantes"
+            called_filenames = [call.args[1] for call in mock_upload.call_args_list]
+            assert "plato_test_thumbnail.webp" in called_filenames
+            assert "plato_test_large.webp" in called_filenames
+
+    finally:
         await pool.shutdown()
-        
-        assert mock_upload.call_count == 3, "El worker no subió todas las variantes"
-        called_filenames = [call.args[1] for call in mock_upload.call_args_list]
-        assert "plato_test_thumbnail.webp" in called_filenames
-        assert "plato_test_large.webp" in called_filenames

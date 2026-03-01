@@ -1,5 +1,3 @@
-# backend/app/workers/pool.py
-
 import asyncio
 from concurrent.futures import ProcessPoolExecutor
 import logging

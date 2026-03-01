@@ -1,5 +1,3 @@
-# backend/app/models/restaurant.py
-
 from sqlalchemy import Column, String, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship

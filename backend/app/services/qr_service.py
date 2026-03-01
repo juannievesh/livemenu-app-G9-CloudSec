@@ -1,5 +1,3 @@
-# backend/app/services/qr_service.py
-
 import qrcode
 import qrcode.image.svg
 from io import BytesIO
