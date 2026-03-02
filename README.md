@@ -183,3 +183,9 @@ Una vez implementados, los endpoints estarán disponibles en:
 
 Ver documentación completa en: http://localhost:8000/api/docs
 
+## Demo
+
+El video de demo se subio a la nube debido al peso del archivo, el video muestra las funcionalidades de la pagina web.
+
+Link: https://uniandes-my.sharepoint.com/:v:/g/personal/af_restrepo_uniandes_edu_co/IQBvfNhaUDasT4jzMMfHtl71AYwg5nNLxJIROuJG6yRblFM?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=KBaDD3
+
