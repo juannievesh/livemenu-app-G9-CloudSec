@@ -100,7 +100,7 @@ export default function Dishes() {
 
   const resolveUrl = (url: string) => {
     if (url.startsWith('http')) return url;
-    const base = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const base = "https://livemenu-backend-403658009429.us-central1.run.app";
     return `${base}${url}`;
   };
 

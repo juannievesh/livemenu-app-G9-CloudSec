@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = "https://livemenu-backend-403658009429.us-central1.run.app";
 const API_PREFIX = '/api/v1';
 
 function getToken(): string | null {

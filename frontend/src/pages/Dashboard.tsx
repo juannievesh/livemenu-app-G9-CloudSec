@@ -30,7 +30,7 @@ export default function Dashboard() {
   }, []);
 
   const restaurant = restaurants[0];
-  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const baseUrl = "https://livemenu-backend-403658009429.us-central1.run.app" ;
   const menuUrl = restaurant?.slug ? `${baseUrl}/m/${restaurant.slug}` : '';
 
   if (loading) {

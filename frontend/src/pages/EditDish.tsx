@@ -9,7 +9,7 @@ import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Switch } from '../components/ui/switch';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = "https://livemenu-backend-403658009429.us-central1.run.app";
 
 function resolveImageUrl(url: string): string {
   if (url.startsWith('http') || url.startsWith('blob:')) return url;

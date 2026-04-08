@@ -8,7 +8,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { LogIn, UserPlus, Sun, Moon } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = "https://livemenu-backend-403658009429.us-central1.run.app";
 
 export default function Login() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
