@@ -147,4 +147,4 @@ Para sostener RTO de 30 min:
 
 # Responsable
 
-Persona 1 – Despliegue en Nube + Arquitectura
+Persona 1 – Despliegue en Nube + Arquitectur
