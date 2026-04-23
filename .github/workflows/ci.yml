@@ -2,7 +2,7 @@ name: LiveMenu Security CI/CD
 
 on:
   push:
-    branches: [ "main", "feature/Seguridad-de-Contenedores-+-CI/CD" ]
+    branches: [ "main", "feature/Seguridad-de-Contenedores-CICD" ]
   pull_request:
     branches: [ "main" ]
 
