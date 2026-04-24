@@ -90,13 +90,12 @@ jobs:
           exit-code: '1'
           trivyignores: '.trivyignore'
 
-#      - name: Upload Trivy scan results
-#        uses: github/codeql-action/upload-sarif@v3
-#        if: always()
-#        with:
-#          sarif_file: 'trivy-results-${{ matrix.component }}.sarif'
-#          category: trivy-${{ matrix.component }}
-
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results-${{ matrix.component }}.sarif'
+          category: trivy-${{ matrix.component }}
   # ==========================================
   # 3. DESPLIEGUE A GCP (FASE CD)
   # ==========================================
@@ -104,7 +103,8 @@ jobs:
     name: Push to GAR & Trigger Cloud Build
     runs-on: ubuntu-latest
     needs: security-scan
-    if: github.ref == 'refs/heads/main'
+    # Permitir que corra en tu rama de feature para probar la conexión
+    if: contains(github.ref, 'feature/Seguridad-de-Contenedores-CICD') || github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout code
@@ -114,6 +114,7 @@ jobs:
         id: auth
         uses: google-github-actions/auth@v2
         with:
+          token_format: 'access_token'
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
@@ -124,3 +125,13 @@ jobs:
 
       - name: Configure Docker for GCP
         run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+
+      - name: Build and Push Backend
+        run: |
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/livemenu-repo/backend:${{ github.sha }} ./backend
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/livemenu-repo/backend:${{ github.sha }}
+
+      - name: Build and Push Frontend
+        run: |
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/livemenu-repo/frontend:${{ github.sha }} ./frontend
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/livemenu-repo/frontend:${{ github.sha }}
