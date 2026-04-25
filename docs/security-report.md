@@ -29,9 +29,13 @@ Rutas de código fuente asociadas:
 ## 4. Evidencias de Ejecución
 ### A. Tabla de Resultados del Análisis de Seguridad (Frontend)
 [Ver reporte](../trivy-report-front.txt)
+
 ### B. Tabla de Resultados del Análisis de Seguridad (Backend)
 [Ver reporte](../trivy-report-baack.txt)
+
 ### C. Evidencia de Ejecución en GitHub Actions
 <img width="1882" height="618" alt="image" src="https://github.com/user-attachments/assets/9f067586-4fd0-4f25-a327-8ce54833567f" />
+
 ### D. Evidencia de Repositorio en GCP Artifact Registry
-<img width="975" height="247" alt="image" src="https://github.com/user-attachments/assets/c96dff2a-1af3-445b-8248-667ce5317133" />
+<img width="1405" height="473" alt="image" src="https://github.com/user-attachments/assets/c590719f-486a-44ea-8fee-d284f336d9a1" />
+
