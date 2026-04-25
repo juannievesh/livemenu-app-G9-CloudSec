@@ -25,3 +25,4 @@ starlette>=0.40.0
 python-dotenv>=1.2.2
 python-multipart>=0.0.26
 google-cloud-secret-manager==2.20.0
+protobuf>=5.29.6,<6
