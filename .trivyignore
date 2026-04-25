@@ -1,0 +1,11 @@
+# RIESGOS ACEPTADOS (Pendientes de parche Upstream)
+
+# Vulnerabilidades de Debian 13.4
+CVE-2025-69720
+CVE-2026-29111
+
+# Vulnerabilidad en librería Python ECDSA (Ataque Minerva)
+CVE-2024-23342
+
+# Vulnerabilidad en pyasn1 (Bloqueada por dependencia estricta de python-jose)
+CVE-2026-30922
