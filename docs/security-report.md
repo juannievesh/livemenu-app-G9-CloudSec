@@ -21,16 +21,17 @@ Registrar las siguientes excepciones en el manifiesto de control del escáner, a
 - CVE-2026-29111 (Componentes systemd / libudev1): Aceptar el riesgo crítico en la gestión de comunicación entre procesos (IPC) nativa de Debian 13.4, cuya explotación requiere acceso previo al contenedor. Mantener el riesgo documentado hasta la publicación de un parche oficial por parte del mantenedor del sistema operativo.
 - CVE-2024-23342 (Librería Python ecdsa): Aceptar el riesgo de vulnerabilidad criptográfica por ataque de canal lateral basado en tiempos de ejecución (Ataque Minerva). Documentar la falta de una versión corregida compatible con la estructura del proyecto.
 - CVE-2026-30922 (Librería Python pyasn1): Aceptar el riesgo de vulnerabilidad por recursión infinita (Stack Exhaustion). Evidenciar que la actualización hacia la versión mitigadora (0.6.3) es incompatible debido a una dependencia circular estricta (<0.5.0) impuesta por la librería central de gestión de tokens criptográficos del proyecto.
+
 Rutas de código fuente asociadas:
 - Manifiesto de exclusión de vulnerabilidades: .trivyignore.
 - Declaración de dependencias del sistema: backend/requirements.txt.
 
 ## 4. Evidencias de Ejecución
 ### A. Tabla de Resultados del Análisis de Seguridad (Frontend)
-
+[Ver reporte](../trivy-report-front.txt)
 ### B. Tabla de Resultados del Análisis de Seguridad (Backend)
-
+[Ver reporte](../trivy-report-baack.txt)
 ### C. Evidencia de Ejecución en GitHub Actions
-[Insertar aquí la captura de pantalla del reporte de Code Scanning o del log de GitHub Actions con los pasos de construcción y seguridad validados]
+<img width="1882" height="618" alt="image" src="https://github.com/user-attachments/assets/9f067586-4fd0-4f25-a327-8ce54833567f" />
 ### D. Evidencia de Repositorio en GCP Artifact Registry
 <img width="975" height="247" alt="image" src="https://github.com/user-attachments/assets/c96dff2a-1af3-445b-8248-667ce5317133" />
