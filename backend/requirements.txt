@@ -19,8 +19,10 @@ email-validator
 passlib[bcrypt]
 asyncpg>=0.29.0
 jinja2==3.1.3
-google-cloud-storage==2.14.0
+google-cloud-storage>=2.19.0
 ruff
 starlette>=0.40.0
 python-dotenv>=1.2.2
 python-multipart>=0.0.26
+google-cloud-secret-manager>=2.23.0
+protobuf>=5.29.6,<6
