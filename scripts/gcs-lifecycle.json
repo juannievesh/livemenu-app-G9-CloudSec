@@ -1,0 +1,19 @@
+{
+  "lifecycle": {
+    "rule": [
+      {
+        "action": { "type": "Delete" },
+        "condition": {
+          "age": 30,
+          "isLive": false
+        }
+      },
+      {
+        "action": { "type": "AbortIncompleteMultipartUpload" },
+        "condition": {
+          "age": 7
+        }
+      }
+    ]
+  }
+}

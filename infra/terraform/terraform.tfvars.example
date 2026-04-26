@@ -1,0 +1,27 @@
+# Plantilla de variables Terraform.
+# Copiar a terraform.tfvars y ajustar valores. NO commitear terraform.tfvars.
+
+project_id           = "livemenu-project"
+region               = "us-central1"
+gcs_bucket_name      = "livemenu-images-prod"
+sql_instance_name    = "livemenu-db"
+lb_backend_api       = "backend-backend"
+lb_backend_frontend  = "frontend-backend"
+
+waf_rate_limit_rpm         = 100
+waf_rate_limit_path_prefix = "/api/"
+
+backup_retention_count = 15
+backup_start_time_utc  = "08:00"
+tx_log_retention_days  = 7
+
+lifecycle_noncurrent_age_days = 30
+
+# Limpieza IAM (poner en true solo despues de validar que ningun servicio
+# depende de la SA default de Compute con rol Editor):
+remove_default_compute_sa_editor = false
+default_compute_sa_member        = "serviceAccount:403658009429-compute@developer.gserviceaccount.com"
+
+# Geo-filtering opcional:
+enable_geo_filtering = false
+geo_block_regions    = ["CN", "RU", "KP"]
