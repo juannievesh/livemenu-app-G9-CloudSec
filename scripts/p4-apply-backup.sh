@@ -40,7 +40,7 @@ $DRY gcloud sql instances patch "$SQL_INSTANCE" \
   --backup-location="us" \
   --retained-backups-count="$BACKUP_RETENTION" \
   --enable-point-in-time-recovery \
-  --transaction-log-retention-days="$TX_LOG_RETENTION_DAYS" \
+  --retained-transaction-log-days="$TX_LOG_RETENTION_DAYS" \
   --quiet
 
 echo ">>> Verificando configuracion ..."

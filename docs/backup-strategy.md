@@ -42,7 +42,7 @@ gcloud sql instances patch livemenu-db \
   --backup-location=us \
   --retained-backups-count=15 \
   --enable-point-in-time-recovery \
-  --transaction-log-retention-days=7
+  --retained-transaction-log-days=7
 ```
 
 ### 2.3 Verificación

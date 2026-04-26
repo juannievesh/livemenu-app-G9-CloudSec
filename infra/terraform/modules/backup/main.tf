@@ -19,7 +19,7 @@ gcloud sql instances patch ${var.sql_instance_name} \
   --backup-location=us \
   --retained-backups-count=${var.backup_retention_count} \
   --enable-point-in-time-recovery \
-  --transaction-log-retention-days=${var.tx_log_retention_days} \
+  --retained-transaction-log-days=${var.tx_log_retention_days} \
   --quiet
 EOT
   }
