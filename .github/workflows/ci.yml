@@ -103,7 +103,6 @@ jobs:
     name: Push to GAR & Trigger Cloud Build
     runs-on: ubuntu-latest
     needs: security-scan
-    # Permitir que corra en tu rama de feature para probar la conexión
     if: contains(github.ref, 'feature/Seguridad-de-Contenedores-CICD') || github.ref == 'refs/heads/main'
 
     steps:
